@@ -1,0 +1,564 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+/* =========================================================
+ * Cayman上書き：レイアウト/タイポ/表の見やすさ（レスポンシブ）
+ * 目的：明るいモニターでも色が飛ばない（透明度依存を減らす）
+ * ========================================================= */
+
+/* -------------------------------
+ * 1) ヘッダー（上の詰まり・タイトル折り返し対策）
+ * ------------------------------- */
+.page-header {
+  padding: clamp(1.6rem, 3.2vw, 3.0rem) 1rem;
+}
+
+.project-name {
+  font-size: clamp(1.8rem, 3.8vw, 3.2rem);
+  line-height: 1.15;
+  margin: 0 0 0.45rem 0;
+
+  /* 日本語の途中分割を抑制（英数字は自然に折返し） */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.project-tagline {
+  font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+  line-height: 1.4;
+  margin: 0.15rem 0 0 0;
+}
+
+/* -------------------------------
+ * 2) 本文：大画面で左寄りにならない＋余白も作る
+ * ------------------------------- */
+.main-content {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+
+  /* ヘッダー直下が詰まる問題の対策（少しだけ上に余白） */
+  padding: 1.6rem clamp(0.9rem, 2vw, 1.4rem) 2.6rem;
+}
+
+@media (min-width: 900px) {
+  .main-content {
+    max-width: min(94vw, 1200px);
+  }
+}
+
+@media (min-width: 1400px) {
+  .main-content {
+    max-width: min(92vw, 1400px);
+  }
+}
+
+.main-content hr {
+  margin: 1.35rem 0;
+}
+
+.main-content h1,
+.main-content h2,
+.main-content h3 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.65rem;
+  scroll-margin-top: 90px;
+}
+
+.main-content p {
+  margin-bottom: 0.75rem;
+}
+
+/* =========================================================
+ * 3) details / summary：閉じてる状態でも“カード感”を出す（最重要）
+ * ========================================================= */
+
+/* details本体（閉じている状態の箱） */
+details {
+  margin: 0.9rem 0 1.25rem 0;
+  border-radius: 12px;
+
+  /* ✅閉じている状態でも “色がついて見える” ようにする */
+  background: #f3faf5;                 /* 淡い緑（中身が白でも差が出る） */
+  border: 2px solid rgba(22, 163, 74, 0.22);  /* 緑寄りの枠 */
+
+  padding: 0.55rem 0.85rem;
+
+  /* カードっぽさ */
+  box-shadow: 0 1px 0 rgba(0,0,0,.04);
+}
+
+/* 開いている時は枠を少し強調 */
+details[open] {
+  border-color: rgba(22, 163, 74, 0.40);
+}
+
+/* summary（クリック行） */
+summary {
+  cursor: pointer;
+  list-style: none;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+
+  padding: 0.55rem 0.70rem;
+  border-radius: 10px;
+
+  /* ✅summaryも“白”にせず、状態差が出るように */
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,.12);
+
+  /* 視認性アップ */
+  color: rgba(0,0,0,.88);
+}
+
+summary::-webkit-details-marker { display: none; }
+
+/* 左側のアイコン（▶▼） */
+details > summary::before {
+  content: "▶";
+  opacity: .85;
+  transform: translateY(-1px);
+}
+
+details[open] > summary::before {
+  content: "▼";
+}
+
+/* =========================================================
+ * 6) details（開いた中身）：白じゃなく“薄緑カード”に
+ * ========================================================= */
+
+/* ✅開いた中身全体 */
+details > :not(summary) {
+  margin-top: 0.65rem;
+  padding: 0.85rem 1.0rem;
+  border-radius: 10px;
+
+  /* 中身を“白”にしない（閉じた時との差を出す） */
+  background: #ffffff;
+
+  /* 左アクセント：見どころ感 */
+  border-left: 5px solid rgba(22, 163, 74, 0.85);
+
+  /* ほんの少しだけ枠感 */
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+
+/* リストの見やすさ */
+details > :not(summary) ul {
+  margin: 0.2rem 0 0 0;
+  padding-left: 1.05rem;
+}
+
+details > :not(summary) li {
+  margin: 0.32rem 0;
+  line-height: 1.60;
+}
+
+/* liのstrongを少しだけ強調 */
+details > :not(summary) strong {
+  color: rgba(0,0,0,.92);
+}
+
+/* スマホ時は余白を少し減らす */
+@media (max-width: 600px) {
+  details {
+    padding: 0.55rem 0.70rem;
+  }
+
+  summary {
+    padding: 0.55rem 0.65rem;
+  }
+
+  details > :not(summary) {
+    padding: 0.75rem 0.85rem;
+  }
+}
+
+/* -------------------------------
+ * 4) 表：見やすさ（色飛び対策＝ベタ色＋輪郭強化）
+ * ------------------------------- */
+
+.table-compact {
+  width: 100%;
+}
+
+/* 外枠は「内容にフィット」＋ 画面にはみ出すときだけ 100% で止める */
+.table-wrap {
+  display: inline-block;              /* ★ shrink-to-fit */
+  width: fit-content;                 /* ★ 表の幅に合わせる */
+  max-width: 100%;                    /* ★ 画面幅を超えない */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  background: #fff;
+  border: 2px solid rgba(0,0,0,.35);
+  border-radius: 12px;
+}
+
+/* ===============================
+ * 構成要素（stack-table）だけは “幅いっぱい” を優先
+ * =============================== */
+
+/* 980px固定の影響を確実に打ち消す */
+#stack-table table {
+  width: 100% !important;
+  min-width: 0 !important;          /* ★重要：980px を潰す */
+  table-layout: fixed;              /* ★列を幅に合わせて伸縮 */
+}
+
+/* 3列の比率（任意：見た目が安定） */
+#stack-table th:nth-child(1),
+#stack-table td:nth-child(1) { width: 14%; }
+
+#stack-table th:nth-child(2),
+#stack-table td:nth-child(2) { width: 46%; }
+
+#stack-table th:nth-child(3),
+#stack-table td:nth-child(3) { width: 40%; }
+
+/* ヘッダー：rgba(薄い)をやめて「実色」にする */
+.table-compact thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+
+  background: #e6f4ea !important;
+  color: rgba(0,0,0,.90);
+  font-weight: 800;
+
+  border-bottom: 1px solid rgba(0,0,0,.22) !important;
+}
+
+/* セル：罫線を少し濃くして輪郭を出す */
+.table-compact th,
+.table-compact td {
+  padding: 0.50rem 0.70rem;
+  border-right: 1px solid rgba(0,0,0,.14);
+  border-bottom: 1px solid rgba(0,0,0,.14);
+  vertical-align: top;
+  background: #fff;
+}
+
+.table-compact tr > *:last-child {
+  border-right: none;
+}
+
+.table-compact tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 行の視認性：縞もベタ色にして飛ばないように */
+.table-compact tbody tr:nth-child(even) td {
+  background: #f7f8f7 !important;
+}
+
+/* hover：薄緑のベタ色（alpha依存を減らす） */
+.table-compact tbody tr:hover td {
+  background: #eef8f0 !important;
+}
+
+/* =========================================
+ * map-table（章×試験ID対応表）だけ折り返し方針を変更
+ * ========================================= */
+
+#map-table table {
+  table-layout: auto;
+  width: 100%;
+}
+
+#map-table td:nth-child(1),
+#map-table th:nth-child(1),
+#map-table td:nth-child(1) a {
+  white-space: nowrap;
+}
+
+#map-table td:nth-child(2),
+#map-table th:nth-child(2) {
+  white-space: normal !important;
+  line-height: 1.35;
+  min-width: 10.5em;
+}
+
+#map-table td:nth-child(4) {
+  white-space: normal !important;
+  line-height: 1.35;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  hyphens: manual;
+}
+
+#map-table td:nth-child(4) code {
+  display: inline-block;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  #map-table td:nth-child(1),
+  #map-table th:nth-child(1),
+  #map-table td:nth-child(1) a {
+    white-space: normal;
+  }
+  #map-table td:nth-child(4) code {
+    white-space: normal;
+  }
+}
+
+/* 既存の全体ルール */
+.table-compact td:nth-child(2),
+.table-compact th:nth-child(2) {
+  white-space: nowrap;
+}
+
+.table-compact td,
+.table-compact th {
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.table-compact td code {
+  font-size: 0.88em;
+  padding: 0.14em 0.40em;
+  border-radius: 999px;
+
+  background: #e8f3ec !important;
+  border: 1px solid rgba(21, 128, 61, 0.35) !important;
+}
+
+#stack-table table {
+  min-width: 0 !important;
+}
+
+/* -------------------------------
+ * 5) スマホ：文字を少し小さく＆余白を控えめ
+ * ------------------------------- */
+@media (max-width: 600px) {
+  .page-header {
+    padding: 1.6rem 0.85rem;
+  }
+
+  .main-content {
+    padding: 1.2rem 0.85rem 2.2rem;
+  }
+
+  .table-compact table {
+    display: table !important;
+    width: 100% !important;
+    margin: 0 !important;
+    border: none;
+    border-radius: 0;
+  }
+}
+
+/* =========================================================
+ * 7) スマホで表が潰れる問題：小画面は“横スクロール優先”に切替
+ * ========================================================= */
+@media (max-width: 760px) {
+  .table-wrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-wrap table {
+    table-layout: auto !important;
+    width: max-content !important;
+    min-width: 680px;
+  }
+
+  #stack-table table {
+    table-layout: auto !important;
+    width: max-content !important;
+    min-width: 680px;
+  }
+
+  .table-compact td:nth-child(2),
+  .table-compact th:nth-child(2) {
+    white-space: normal !important;
+  }
+}
+
+/* =========================================================
+ * 1枚画像の左右フォーカス切替（JSなし）
+ * ✅ 2個前の方式：非フォーカス側を「背景色で覆って」視界から消す
+ * ※ ダークモード対応なし（ライト固定）
+ * ========================================================= */
+
+:root{
+  /* ライト固定：背景に同化させる覆い色 */
+  --cmp-cover: rgba(255,255,255,.90);
+  --cmp-divider: rgba(0,0,0,.12);
+  --cmp-ui-bg: rgba(255,255,255,.92);
+  --cmp-ui-bd: rgba(0,0,0,.14);
+  --cmp-ui-shadow: 0 6px 18px rgba(0,0,0,.06);
+}
+
+/* wrapper */
+.cmp-wrap{
+  margin: 1.2rem 0 1.6rem;
+  position: relative;
+}
+
+/* radioを隠す */
+.cmp-radio{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+
+/* controls：フラットなセグメントUI（帯なし） */
+.cmp-controls{
+  display:inline-flex;
+  gap:0;
+  justify-content:center;
+  align-items:center;
+
+  border: 1px solid var(--cmp-ui-bd);
+  border-radius: 999px;
+  overflow: hidden;
+
+  background: var(--cmp-ui-bg);
+  box-shadow: var(--cmp-ui-shadow);
+
+  margin: 0 auto .75rem auto;
+}
+
+/* button */
+.cmp-btn{
+  appearance:none;
+  border:0;
+  background: transparent;
+  cursor:pointer;
+
+  padding: .42rem .85rem;
+  font-weight: 700;
+  font-size: .92rem;
+  line-height: 1;
+
+  color: rgba(0,0,0,.74);
+  user-select:none;
+
+  transition: background .15s ease, color .15s ease;
+}
+
+/* divider between buttons */
+.cmp-btn + .cmp-btn{
+  border-left: 1px solid rgba(0,0,0,.10);
+}
+
+.cmp-btn:hover{
+  background: rgba(46,160,67,.08);
+  color: rgba(0,0,0,.88);
+}
+
+/* selected */
+#cmp-both:checked ~ .cmp-controls label[for="cmp-both"],
+#cmp-left:checked ~ .cmp-controls label[for="cmp-left"],
+#cmp-right:checked ~ .cmp-controls label[for="cmp-right"]{
+  background: rgba(46,160,67,.20);
+  color: rgba(0,0,0,.90);
+}
+
+/* stage */
+.cmp-stage{
+  position:relative;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow: 0 10px 26px rgba(0,0,0,.12);
+  background:#fff;
+
+  /* ✅ 分割位置（右へ寄せたいなら 52%〜55% など） */
+  --cmp-split: 52%;
+}
+
+/* base image */
+.cmp-img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+/* focus image (same image) */
+.cmp-img.focus{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  opacity:0;
+  pointer-events:none;
+}
+
+/* center divider (optional) */
+.cmp-stage .cmp-divider{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left: var(--cmp-split);
+  width:2px;
+  background: var(--cmp-divider);
+  transform: translateX(-1px);
+  pointer-events:none;
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+
+/* cover layer (hide non-focus side) */
+.cmp-stage .cmp-cover{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0;
+  transition: opacity .18s ease;
+
+  background: var(--cmp-cover);
+  backdrop-filter: blur(2px);
+}
+
+/* both */
+#cmp-both:checked ~ .cmp-stage .cmp-img.focus{ opacity:0; }
+#cmp-both:checked ~ .cmp-stage .cmp-cover{ opacity:0; }
+#cmp-both:checked ~ .cmp-stage .cmp-divider{ opacity:0; }
+
+/* left focus: show left half clean, hide right half */
+#cmp-left:checked ~ .cmp-stage .cmp-img.focus{
+  opacity:1;
+  clip-path: inset(0 calc(100% - var(--cmp-split)) 0 0);
+}
+#cmp-left:checked ~ .cmp-stage .cmp-cover{
+  opacity:1;
+  clip-path: inset(0 0 0 var(--cmp-split));
+}
+#cmp-left:checked ~ .cmp-stage .cmp-divider{ opacity:.9; }
+
+/* right focus: show right half clean, hide left half */
+#cmp-right:checked ~ .cmp-stage .cmp-img.focus{
+  opacity:1;
+  clip-path: inset(0 0 0 var(--cmp-split));
+}
+#cmp-right:checked ~ .cmp-stage .cmp-cover{
+  opacity:1;
+  clip-path: inset(0 calc(100% - var(--cmp-split)) 0 0);
+}
+#cmp-right:checked ~ .cmp-stage .cmp-divider{ opacity:.9; }
+
+.cmp-hint{
+  text-align:center;
+  font-size:.9rem;
+  opacity:.72;
+  margin:.55rem 0 0;
+}
