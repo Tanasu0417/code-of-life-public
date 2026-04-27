@@ -1,11 +1,4 @@
 theme: jekyll-theme-cayman
-title: Code of Life Public Portfolio
-description: 技術ポートフォリオ公開用リポジトリ
+title: multiproxy-oss-portfolio
+description: OSS マルチレイヤープロキシ構築ポートフォリオ
 show_downloads: false
-
-defaults:
-  - scope:
-      path: "portfolio/multiproxy-oss-portfolio"
-    values:
-      layout: default
-      description: "OSS マルチレイヤープロキシ構築ポートフォリオ"
