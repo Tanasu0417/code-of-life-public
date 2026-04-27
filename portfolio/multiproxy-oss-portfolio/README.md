@@ -47,6 +47,11 @@
 
 ## 主要ドキュメント
 
+- **[Index](https://tanasu0417.github.io/code-of-life-public/portfolio/multiproxy-oss-portfolio/)** — 設計意図・全体構成・苦労した点
+- **[Verification](https://tanasu0417.github.io/code-of-life-public/portfolio/multiproxy-oss-portfolio/verification.html)** — 動作証跡（スクショ／ログによる裏取り）
+- **[Automation](https://tanasu0417.github.io/code-of-life-public/portfolio/multiproxy-oss-portfolio/automation.html)** — 構築・検証・復旧の自動化（再現性）
+- **[AWS 展開案](https://tanasu0417.github.io/code-of-life-public/portfolio/multiproxy-oss-portfolio/aws-deployment-plan.html)** — クラウド移行設計の考え方（計画段階）
+- **[面接用ピッチ](https://tanasu0417.github.io/code-of-life-public/portfolio/multiproxy-oss-portfolio/interview-pitch.html)** — 10分プレゼン用の構成
 - **[Index](https://tanasu0417.github.io/code-of-life-public/portfolio/multiproxy-oss-portfolio/)**
 - **[Verification](https://tanasu0417.github.io/code-of-life-public/portfolio/multiproxy-oss-portfolio/verification.html)**
 - **[Automation](https://tanasu0417.github.io/code-of-life-public/portfolio/multiproxy-oss-portfolio/automation.html)**
