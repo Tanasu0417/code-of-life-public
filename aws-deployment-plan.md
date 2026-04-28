@@ -42,7 +42,7 @@ graph TD
 
 - 通信経路（クライアント → Proxy → 出口）が **どのログをたどれば追えるか** を設計に組み込む
 - 認証・TLS・ログ・監視を **AWS サービス単位で責務分離** する
-- 1AZ 1 台から始めて 2AZ 2 台に拡張できる **段階的冗長化** を前提に設計する
+- 1AZ 1 台（PoC）から始めて 2AZ + 3 段 Proxy（Proxy1/2/3）へ拡張できる **段階的冗長化** を前提に設計する
 - 最初から過剰なフルマネージド構成にせず、**コストと可用性のトレードオフ** を構成判断に反映する
 - Terraform / CloudFormation / SSM Automation で **再現可能** な構成にする
 
@@ -75,86 +75,38 @@ graph LR
 
 ## 3. 全体アーキテクチャ図
 
+> 中小企業向け標準構成案（B 案）として **3 段 Proxy（Proxy1: 入口 / Proxy2: 中継 / Proxy3: 出口）** を AWS 上でも維持し、OSS ポートフォリオで実装した責務分離を AWS のマネージド基盤で再構成する設計です。
+
 ### 3-1. 全体構成図
 
-```mermaid
-graph TB
-    subgraph CUST[Customer Account]
-        subgraph VPC[VPC 10.0.0.0/16]
-            subgraph PUB1[Public Subnet AZ-a]
-                NAT_A[NAT Gateway-a]
-            end
-            subgraph PUB2[Public Subnet AZ-c]
-                NAT_C[NAT Gateway-c<br/>※可用性優先時]
-            end
-            subgraph PRV1[Private Subnet AZ-a]
-                PX_A[Proxy EC2-a<br/>Squid]
-            end
-            subgraph PRV2[Private Subnet AZ-c]
-                PX_C[Proxy EC2-c<br/>Squid]
-            end
-            R53R[Route 53 Resolver]
-            SSM[Systems Manager]
-        end
-        CW[CloudWatch<br/>Logs / Metrics / Alarm]
-        S3LOG[S3 Log Archive]
-        OS[OpenSearch Service<br/>※監査強化時に段階導入]
-        S3PAC[S3 + CloudFront<br/>PAC 配布]
-        AD[Managed Microsoft AD<br/>or AD Connector]
-    end
+![AWS 全体構成図 - 中小企業向け多段プロキシ・認証・ログ基盤 標準構成案](./images/02_aws_overall_architecture_3proxy.png)
 
-    CL[社内クライアント] --> S3PAC
-    CL --> PX_A
-    CL --> PX_C
-    PX_A --> NAT_A --> INET[Internet]
-    PX_C --> NAT_C --> INET
-    PX_A --> CW
-    PX_C --> CW
-    CW --> S3LOG
-    CW -.監査強化時.-> OS
-    PX_A -.認証.-> AD
-    PX_C -.認証.-> AD
-    SSM --> PX_A
-    SSM --> PX_C
-```
-
-- VPC は 1 つ、Public / Private を 2AZ 配置（AZ-a / AZ-c）
-- Proxy EC2 は Private Subnet 配置、外部到達は NAT Gateway 経由
-- Route 53 Resolver で内部 DNS、PAC は S3 + CloudFront で配布（端末管理がある場合は端末側に寄せる）
-- 認証は Managed Microsoft AD / AD Connector / IAM Identity Center を要件に応じて選択
-- ログは CloudWatch Logs を起点に、S3 アーカイブと（必要時）OpenSearch へ分配
+- Customer Account / VPC / 2AZ（AZ-a / AZ-c）に Public / Private Subnet を各 2 配置
+- Private Subnet 内に **Proxy EC2 を 3 段（Proxy1 / Proxy2 / Proxy3）** で構成し、入口・中継・出口の責務を分離
+- 出口は NAT Gateway 経由、PAC は CloudFront + S3 で配布
+- 認証は AD Connector または Samba AD/DC（要件次第で Managed Microsoft AD / IAM Identity Center）
+- 観測は CloudWatch Logs を起点に CloudWatch Alarm / S3 Log Archive、SSM Session Manager で運用
 
 ### 3-2. 通信フロー図
 
-```mermaid
-sequenceDiagram
-    actor U as 社内クライアント
-    participant CF as CloudFront(PAC)
-    participant PX as Proxy EC2
-    participant ADS as Managed AD
-    participant NAT as NAT Gateway
-    participant INET as Internet
-    participant CW as CloudWatch Logs
+![AWS 通信フロー図 - 3段Proxy + PAC + AD 認証](./images/03_aws_network_flow_3proxy_pac.png)
 
-    U->>CF: PAC ファイル取得
-    CF-->>U: proxy.pac
-    U->>PX: HTTP / HTTPS via PAC
-    PX->>ADS: 認証 (Kerberos / LDAP)
-    ADS-->>PX: 認可結果
-    PX->>NAT: 出口通信 (許可時)
-    NAT->>INET: HTTPS
-    INET-->>NAT: Response
-    NAT-->>PX: Response
-    PX-->>U: Response
-    PX->>CW: access.log / cache.log
-```
+- Client は VPN（AWS Client VPN 想定）で VPC へ入り、PAC で経路を判定
+- Proxy1（入口）→ Proxy2（中継 / ICAP / ClamAV 連携）→ Proxy3（出口）の順に処理
+- 認証は AD（Kerberos / LDAP）で実施し、認可結果を Proxy1 で判定
+- Proxy3 から NAT Gateway を経由してインターネットへ HTTP / HTTPS で到達
+- 各段から CloudWatch Logs にアクセスログ／プロセスログを集約、S3 にアーカイブ
 
-- PAC 配布で経路を制御、認証で許可・拒否、出口は NAT GW で集約
-- 認証失敗（407）と ACL 拒否（403）を Proxy ログで切り分け可能にする
-- 各段で CloudWatch Logs に転送し **障害時に時系列で追える状態** を担保
-- 必要に応じて VPC Flow Logs を有効化し「誰が・どこへ・いつ」を補完
+### 3-3. Z アーキテクチャ（レイヤ分解図）
 
-### 3-3. 運用・自動化フロー図
+![Z アーキテクチャ - 3段Proxy のレイヤ分解](./images/04_aws_layered_architecture_3proxy.png)
+
+- **Egress / Proxy / Auth / Control / Access / Client** の 6 レイヤと **Logging Layer**（運用横断）に責務を分離
+- レイヤ単位で「変更影響範囲」と「障害切り分け範囲」が定まる構造
+- Logging Layer は CloudWatch Logs / S3 / Alarm / SSM で全レイヤを横断観測
+- このレイヤモデルは Terraform / CloudFormation のモジュール分割単位にも対応させる想定
+
+### 3-4. 運用・自動化フロー図
 
 ```mermaid
 graph LR
@@ -177,72 +129,74 @@ graph LR
 
 ---
 
-## 4. 推奨構成：初期版（中小企業向け初期構成案）
+## 4. 推奨構成：中小企業向け標準構成案（B 案）
 
 ```mermaid
 graph TB
-    subgraph INIT[中小企業向け初期構成案]
+    subgraph INIT[中小企業向け標準構成案 B]
         VPC1[VPC x 1] --> AZ[2 AZ]
         AZ --> PUB[Public Subnet x 2]
         AZ --> PRV[Private Subnet x 2]
-        PRV --> PX[Proxy EC2<br/>PoC 1 台 / 標準 2 台]
-        PUB --> NAT1[NAT Gateway<br/>1 台 ※コスト優先]
+        PRV --> P1[Proxy1<br/>入口・認証]
+        PRV --> P2[Proxy2<br/>中継・ICAP / ClamAV]
+        PRV --> P3[Proxy3<br/>出口・ACL]
+        PUB --> NAT1[NAT Gateway x 2<br/>各 AZ]
         VPC1 --> CW[CloudWatch Logs / Alarm]
         VPC1 --> SSM[SSM Session Manager]
-        VPC1 --> AD[AD Connector or<br/>Managed Microsoft AD]
-        VPC1 --> PAC[S3 + CloudFront<br/>PAC 配布]
+        VPC1 --> AD[AD Connector or<br/>Samba AD/DC]
+        VPC1 --> PAC[CloudFront + S3<br/>PAC 配布]
     end
 ```
 
 | 構成要素 | 推奨値 | 理由 / トレードオフ |
 |---|---|---|
-| VPC | 1 | シンプル化と運用負荷低減。マルチVPCは規模拡大時に再検討 |
+| VPC | 1 | シンプル化と運用負荷低減。マルチ VPC は規模拡大時に再検討 |
 | AZ | 2 | 単一 AZ 障害で業務断を避ける。3AZ は中小企業向けでは過剰 |
 | Public Subnet | 2 | NAT Gateway 配置用 |
-| Private Subnet | 2 | Proxy EC2 配置、Subnet 跨ぎで AZ 障害を吸収 |
-| Proxy EC2 | PoC 1 台 / 標準 2 台 | 1 台は検証・低コスト開始向け、2 台で AZ 障害・パッチ時の継続性を確保 |
-| NAT Gateway | 1 or 2 | 1 台でコスト最小、2 台で AZ 障害時の出口断を回避（コストと可用性のトレードオフ） |
+| Private Subnet | 2 | 3 段 Proxy 配置、Subnet 跨ぎで AZ 障害を吸収 |
+| Proxy EC2 | PoC 1 台 / 標準 3 段（Proxy1/2/3） | OSS ポートフォリオの **入口・中継・出口の責務分離** を AWS 上でも維持。1 台は検証用 |
+| NAT Gateway | 標準 2 台（コスト優先で 1 台案） | 標準は各 AZ 配置で AZ 障害時の出口断を回避。コスト優先時は 1 台案も検討 |
 | CloudWatch Logs | 必須 | アクセスログ・syslog の集約と検索、初期は CW Logs Insights で代替可 |
 | OpenSearch Service | 段階導入 | 小規模ではコストが重く、CW Logs Insights で代替可能。監査要件が明確な場合のみ追加 |
 | CloudWatch Alarm | 必須 | EC2 NW / 出口エラー率 / Proxy プロセス監視 |
 | SSM Session Manager | 必須 | 踏み台 EC2 を不要化、IAM 監査が効く |
-| AD 連携 | AD Connector / Managed AD / IAM Identity Center | 既存 AD があれば AD Connector が低コスト、新規なら Managed AD |
-| PAC 配布 | S3 + CloudFront or 端末管理 | 端末管理が無ければ S3 + CloudFront、Intune / Jamf があれば端末管理側へ寄せる |
+| AD 連携 | AD Connector / Samba AD/DC / Managed AD / IAM Identity Center | 既存 AD があれば AD Connector が低コスト、新規なら Managed AD、自前運用なら Samba AD/DC |
+| PAC 配布 | CloudFront + S3 or 端末管理 | 端末管理が無ければ CloudFront + S3、Intune / Jamf があれば端末管理側へ寄せる |
 
-**台数選定の理由**
+**台数・構成の選定理由**
 
-- **Proxy 1 台**: 検証・PoC・低コスト開始向け。AZ 障害時の停止を許容できる場合のみ
-- **Proxy 2 台**: 平日業務継続が必要な企業の標準構成。AZ 障害・メンテ時のサービス継続を担保
-- **NAT Gateway 1 台**: 月額コスト最小化、ただし AZ-a 障害で AZ-c の Proxy も出口断
-- **NAT Gateway 2 台**: AZ 障害影響を最小化、コスト増を許容できる場合の選択肢
-- **OpenSearch を初期必須にしない理由**: 小規模ではコストが重く、CW Logs Insights で同等の検索ができる範囲では不要
+- **3 段 Proxy（Proxy1/2/3）**: OSS ポートフォリオで実装した「入口（認証）／中継（ICAP・暗号化）／出口（ACL）」の責務分離を AWS でも維持し、障害切り分け導線を共通化
+- **PoC 時のみ 1 台**: 検証・学習用に責務集約。AZ 障害時の停止を許容できる場合のみ
+- **NAT Gateway 標準 2 台**: 各 AZ 配置で AZ 障害時の出口断を回避。月額コスト増を許容
+- **NAT Gateway 1 台案**: PoC や許容できる用途のみ。AZ-a 障害で AZ-c の Proxy も出口断する点を明示
+- **OpenSearch を初期必須にしない理由**: 小規模ではコストが重く、CW Logs Insights で同等の検索が可能な範囲では不要
 
 ---
 
 ## 5. 構成パターン比較
 
-```mermaid
-graph LR
-    A[パターンA<br/>低コスト PoC] --> B[パターンB<br/>中小企業標準]
-    B --> C[パターンC<br/>監査強化]
-    A -.学習・検証.-> A1[Proxy 1 / NAT 1]
-    B -.実運用.-> B1[Proxy 2 / 2AZ]
-    C -.監査・証跡.-> C1[OpenSearch + Security Hub]
-```
+![AWS 構成パターン比較 - A 低コスト PoC / B 中小企業標準（推奨）/ C 監査強化](./images/01_aws_architecture_comparison_3proxy.png)
 
-| 軸 | パターンA: 低コスト PoC | パターンB: 中小企業標準 | パターンC: 監査強化 |
+> **推奨は B 案（中小企業標準構成）**：コストと可用性のバランスが良く、3 段 Proxy で OSS 構成の責務分離を維持しつつ、段階的に C 案（監査強化）へ拡張可能。
+
+| 軸 | パターン A: 低コスト PoC | パターン B: 中小企業標準（推奨） | パターン C: 監査強化 |
 |---|---|---|---|
-| Proxy EC2 | 1 台 | 2 台（2AZ） | 2 台以上（2AZ） |
-| NAT Gateway | 1 台 or NAT Instance | 1〜2 台 | 2 台 |
+| Proxy EC2 | 1 台（責務集約） | 3 段（Proxy1 / 2 / 3、2AZ） | 3 段以上（2AZ） |
+| NAT Gateway | 1 台 or NAT Instance | 2 台（各 AZ） | 2 台 |
 | ログ集約 | CloudWatch Logs のみ | CW Logs + S3 アーカイブ | CW Logs + S3 + OpenSearch |
-| 認証 | AD Connector | AD Connector / Managed AD | Managed AD + IAM Identity Center |
+| 認証 | AD Connector | AD Connector / Samba AD/DC / Managed AD | Managed AD + IAM Identity Center |
 | 検査・監査 | なし | （任意）GuardDuty 検討 | Security Hub + GuardDuty + AWS Config |
 | 可用性 | 低（AZ 障害でサービス断） | 中（AZ 障害でも継続） | 中〜高 |
 | 月額コスト目安 | 小 | 中 | 大 |
 | 運用負荷 | 低 | 中 | 中〜高 |
 | 監査性 | 最小限 | CW Logs + CloudTrail | フル監査ログ + 自動コンプラ評価 |
 | 初期導入のしやすさ | ◎ | ○ | △（要件整理が必須） |
-| 推奨場面 | 検証・学習・小規模試験導入 | 50〜300名の標準業務 | 監査・証跡・コンプライアンス要求 |
+| 推奨場面 | 検証・学習・小規模試験導入 | 50〜300 名の標準業務 | 監査・証跡・コンプライアンス要求 |
+
+**B 案を推奨する理由**
+- OSS ポートフォリオの「入口・中継・出口」責務分離を AWS でも維持できる
+- 運用保守がしやすく、段階的に C 案（OpenSearch / Security Hub 等）へ拡張できる
+- NAT Gateway 2 台 + Multi-AZ で AZ 障害影響を最小化しつつ、コストは中規模に収まる
 
 ---
 
@@ -501,11 +455,12 @@ graph LR
 また、顧客アカウントへの展開についても、単なる自動構築ではなく、**最小権限・承認・監査・実行後検証** を含めた **承認付きセルフサービス構築フロー** として、安全な導入フローを設計することを目指しています。
 
 **話す順序の例（面接 5 分）**
-1. このページは「設計段階」「中小企業向け初期構成案」（30秒）
-2. 全体構成図 → 責務分離が AWS でも維持できること（1 分）
-3. 構成パターン A / B / C と選定理由・トレードオフ（1 分 30 秒）
-4. Well-Architected 6 本柱で設計を裏付け（1 分）
-5. クロスアカウント + External ID + 承認付きセルフサービス構築フロー（1 分）
+1. このページは「設計段階」「中小企業向け標準構成案（B 案）」（30秒）
+2. 全体構成図（02）→ 3 段 Proxy で OSS の責務分離を AWS でも維持（1 分）
+3. Z アーキテクチャ図（04）→ レイヤ別責務分離と Logging Layer の横断観測（45 秒）
+4. 構成パターン A / B / C 比較（01）→ B 推奨理由とトレードオフ（1 分 15 秒）
+5. Well-Architected 6 本柱で設計を裏付け（45 秒）
+6. クロスアカウント + External ID + 承認付きセルフサービス構築フロー（45 秒）
 
 ---
 
