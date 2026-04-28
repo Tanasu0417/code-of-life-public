@@ -16,7 +16,7 @@ https://tanasu0417.github.io/code-of-life-public/
 | 30秒 | この README の下記「ひと目で分かる構成」 | 何を作ったか・どんな技術スタックか |
 | 3分 | [Verification（動作証跡）](https://tanasu0417.github.io/code-of-life-public/verification.html) | 設計どおりに動いている証拠（スクショ／ログ） |
 | 10分 | [Index（設計意図・全体構成）](https://tanasu0417.github.io/code-of-life-public/) | 設計判断の理由・苦労した点・解決アプローチ |
-| 追加 | [AWS 展開案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html) | 中小企業向け初期構成案・Well-Architected 6本柱・クロスアカウント設計（設計段階） |
+| 追加 | [AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html) | OSS 基盤を AWS へ移行する場合の設計案（Phase 1/2/3 段階導入・実機未実施・技術面接論点まで整理） |
 | 面接 | [面接用ピッチ](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html) | 10分プレゼン用の構成と話す順序 |
 
 ---
@@ -50,7 +50,7 @@ https://tanasu0417.github.io/code-of-life-public/
 - **[Index](https://tanasu0417.github.io/code-of-life-public/)** — 設計意図・全体構成・苦労した点
 - **[Verification](https://tanasu0417.github.io/code-of-life-public/verification.html)** — 動作証跡（スクショ／ログによる裏取り）
 - **[Automation](https://tanasu0417.github.io/code-of-life-public/automation.html)** — 構築・検証・復旧の自動化（再現性）
-- **[AWS 展開案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html)** — 中小企業向け初期構成案・Well-Architected 6本柱・承認付きセルフサービス構築フロー（設計段階。次フェーズで Terraform / CloudFormation / SSM Automation による IaC 化を検証予定）
+- **[AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html)** — OSS 基盤を AWS へ移行する場合の設計案。中小企業向けに **Phase 1（最小）→ Phase 2（B案標準）→ Phase 3（将来拡張）** の段階導入計画、Well-Architected 6 本柱、承認付き IaC 展開フロー、技術面接 Q&A まで整理（**設計段階・AWS 上の実機構築は未実施**。次フェーズで Terraform / CloudFormation / SSM Automation による IaC 化を検証予定）
 - **[面接用ピッチ](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html)** — 10分プレゼン用の構成
 
 ---
