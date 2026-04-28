@@ -1,32 +1,60 @@
-<!-- Mermaid.js を読み込み、Jekyll (Rouge) が ```mermaid を <code class="language-mermaid"> として出力する仕様を踏まえ、図として再描画する -->
-<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-
+<!--
+  Mermaid 図のレンダリング (Jekyll Cayman + GitHub Pages)
+  - UMD 版 (mermaid.min.js) を使い、グローバル `mermaid` を確実に取得
+  - Jekyll (Rouge) が ```mermaid を <div class="language-mermaid"> として出力する仕様、
+    および素の <pre><code class="language-mermaid"> 双方を <div class="mermaid"> へ置換
+  - <details> 内のブロックも対象に含む
+-->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+(function () {
   function convertMermaidBlocks() {
-    // Rouge ラッパー (div.language-mermaid > div.highlight > pre > code) と素の pre>code 双方に対応
-    const rougeBlocks = document.querySelectorAll('div.language-mermaid');
-    rougeBlocks.forEach((wrapper) => {
-      const code = wrapper.querySelector('code');
-      const text = (code ? code.textContent : wrapper.textContent).trim();
-      const div = document.createElement('div');
+    // (1) Rouge ラッパー: <div class="language-mermaid">...<pre><code>...</code></pre></div>
+    document.querySelectorAll('div.language-mermaid').forEach(function (wrapper) {
+      var codeEl = wrapper.querySelector('code') || wrapper.querySelector('pre');
+      var text = (codeEl ? codeEl.textContent : wrapper.textContent).trim();
+      var div = document.createElement('div');
       div.className = 'mermaid';
       div.textContent = text;
-      wrapper.replaceWith(div);
+      wrapper.parentNode.replaceChild(div, wrapper);
     });
 
-    const codeBlocks = document.querySelectorAll('pre > code.language-mermaid');
-    codeBlocks.forEach((code) => {
-      const text = code.textContent.trim();
-      const div = document.createElement('div');
+    // (2) 素の <pre><code class="language-mermaid">
+    document.querySelectorAll('pre > code.language-mermaid').forEach(function (codeEl) {
+      var pre = codeEl.parentNode;
+      var div = document.createElement('div');
       div.className = 'mermaid';
-      div.textContent = text;
-      code.parentElement.replaceWith(div);
+      div.textContent = codeEl.textContent.trim();
+      pre.parentNode.replaceChild(div, pre);
     });
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    convertMermaidBlocks();
-    mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
-    mermaid.run({ querySelector: '.mermaid' });
-  });
+  function init() {
+    try {
+      convertMermaidBlocks();
+      if (window.mermaid && typeof window.mermaid.initialize === 'function') {
+        window.mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'loose',
+          theme: 'default'
+        });
+        if (typeof window.mermaid.run === 'function') {
+          window.mermaid.run({ querySelector: '.mermaid' });
+        } else if (typeof window.mermaid.init === 'function') {
+          // mermaid v9 以前との互換
+          window.mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+        }
+      }
+    } catch (e) {
+      // 失敗時はフォールバックでテキスト表示のまま（ページ自体は壊さない）
+      console && console.warn && console.warn('mermaid render failed:', e);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
