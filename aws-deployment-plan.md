@@ -1,466 +1,341 @@
 ---
-title: AWS 展開案：中小企業向け多段プロキシ・認証・ログ基盤
+title: AWS移行設計案：3段Proxy・認証・ログ基盤
 layout: default
 ---
 
-# AWS 展開案：中小企業向け多段プロキシ・認証・ログ基盤
+# AWS移行設計案：3段Proxy・認証・ログ基盤
 
 Version: 2026-04-28
 Author: gan2
 
-> **本ページは AWS 上に本構成を再設計する場合の設計案です。現時点では設計段階であり、今後 Terraform / CloudFormation / Systems Manager Automation 等による IaC 化・自動化検証を進める予定です。**
+> **本ページは、オンプレ / Docker Composeで構築した3段Proxy・認証・ログ基盤を、AWS上に移行する場合の設計案です。現時点ではAWS上での構築は未実施であり、次フェーズでTerraform / CloudFormation / Systems Manager Automation等によるIaC化・検証を進める予定です。**
 
 ---
 
 ## 0. このページの位置づけ
 
-```mermaid
-graph LR
-    OSS[OSS 多段プロキシ構成<br/>WSL2 + Docker + VMware] --> MAP[責務分離マップ<br/>通信/認証/TLS/ログ/監視]
-    MAP --> AWS[AWS 設計案<br/>中小企業向け初期構成案]
-    AWS --> NEXT[次フェーズで検証予定<br/>Terraform / CFn / SSM Automation]
-```
-
-- OSS 多段プロキシ・認証・ログ基盤を AWS 上に再設計する **設計段階の検討案**
-- 中小企業（50〜300名）向けの **初期構成案** を主体に、監査強化版まで段階拡張を想定
-- 次フェーズで IaC 化と自動テストにより **再現性検証を進める予定**
-- 各構成判断には **可用性・セキュリティ・コスト・運用性のトレードオフ** を必ず明記
+- 現行のオンプレ / Docker Compose構成（3段Proxy・認証・ログ基盤）を、AWS上に再構成する **設計案**
+- AWS上での実構築は未実施。次フェーズで **Terraform / CloudFormation / SSM Automation によるIaC化と検証を予定**
+- 中小企業（50〜300名）向け **B案（標準構成案）** を採用候補として提示
+- 各構成判断には **可用性・セキュリティ・コスト・運用性のトレードオフ** を併記
+- 表現原則：実装完了を断定する表現は使わず、「設計案」「検証予定」「次フェーズで構築予定」を用いる
 
 ---
 
-## 1. 設計ゴール
+## 1. 図で見る設計概要
 
-```mermaid
-graph TD
-    A[設計ゴール] --> B[通信経路の可視化]
-    A --> C[認証/TLS/ログ/監視の責務分離]
-    A --> D[段階的冗長化]
-    A --> E[コストと可用性のバランス]
-    A --> F[障害時の切り分け導線]
-    A --> G[IaC による再現性]
-```
+### 1-1. 構成比較図
 
-- 通信経路（クライアント → Proxy → 出口）が **どのログをたどれば追えるか** を設計に組み込む
-- 認証・TLS・ログ・監視を **AWS サービス単位で責務分離** する
-- 1AZ 1 台（PoC）から始めて 2AZ + 3 段 Proxy（Proxy1/2/3）へ拡張できる **段階的冗長化** を前提に設計する
-- 最初から過剰なフルマネージド構成にせず、**コストと可用性のトレードオフ** を構成判断に反映する
-- Terraform / CloudFormation / SSM Automation で **再現可能** な構成にする
+![AWS 構成比較図 - 案A 単純移植 / 案B 3段Proxy責務維持（採用）/ 案C 監査強化](./images/01_aws_architecture_comparison_3proxy.png)
 
----
+- **案A：単純移植** — Proxy 1台へ責務集約。低コストだが障害切り分け・拡張性が低い
+- **案B：3段Proxy責務維持 + AWS運用最適化（採用）** — 入口/中継/出口の責務分離を AWS 上で維持
+- **案C：監査強化** — OpenSearch / Security Hub / GuardDuty / AWS Config を組み合わせ、監査・証跡要件に対応
 
-## 2. 想定する中小企業モデル
+### 1-2. B案 AWS全体構成図
 
-```mermaid
-graph LR
-    subgraph CORP[本社拠点]
-        EMP[従業員 50〜300名]
-        IT[少人数情シス/インフラ担当]
-    end
-    subgraph REMOTE[リモート利用]
-        WFH[在宅 / 外出]
-    end
-    CORP -->|Proxy / PAC| AWS[AWS VPC]
-    REMOTE -->|VPN or ZTNA| AWS
-    AWS -->|出口制御 + ログ監査| INET[Internet]
-    EXTAD[既存 AD / Azure AD] --> AWS
-```
+![B案 AWS全体構成図 - 中小企業向け標準構成案](./images/02_aws_overall_architecture_3proxy.png)
 
-- 50〜300名規模、本社1拠点 + リモートアクセス（VPN または ZTNA）想定
-- インターネット出口制御とログ監査が必要、ただし 24/365 SRE 体制ではない
-- 既存 AD / Azure AD と ID 連携を前提（要件次第で IAM Identity Center を検討）
-- 初期はコスト抑制を優先し、Multi-AZ・マネージドサービスは段階導入
-- 監査強化要件があるときのみ OpenSearch / Security Hub / GuardDuty / AWS Config を追加検討
+- **VPN（AWS Client VPN 想定）** で社内クライアントから VPC へ接続
+- **PAC** は CloudFront + S3 で配布、社内 DIRECT / 外部 Proxy の経路を制御
+- **AD Connector** で既存 **Samba AD/DC** の認証情報を参照（正本はオンプレ側に残置）
+- **Proxy1 / Proxy2 / Proxy3** を Private Subnet に配置、責務分離を維持
+- **CloudWatch Logs / Alarm**、**S3 Log Archive**、**SSM Session Manager** で運用と監査を担う
 
----
+### 1-3. 通信フロー図
 
-## 3. 全体アーキテクチャ図
+![通信フロー図 - 3段Proxy + PAC + AD認証](./images/03_aws_network_flow_3proxy_pac.png)
 
-> 中小企業向け標準構成案（B 案）として **3 段 Proxy（Proxy1: 入口 / Proxy2: 中継 / Proxy3: 出口）** を AWS 上でも維持し、OSS ポートフォリオで実装した責務分離を AWS のマネージド基盤で再構成する設計です。
+通信ステップ:
+1. **Client起動** （Windows PC / Linux PC）
+2. **VPN接続** （AWS Client VPN 経由で VPC へ到達）
+3. **PAC取得** （CloudFront + S3 から `proxy.pac`）
+4. **Proxy1 認証** （AD Connector 経由で Samba AD/DC に Kerberos / LDAP 問合せ）
+5. **Proxy2 経路分岐** （内部 / 外部・検査要否で振り分け）
+6. **ICAP検査** （ClamAV と連携、不正コンテンツ遮断）
+7. **Proxy3 出口制御** （ACL に基づく宛先制限）
+8. **NAT Gateway 経由で Internet へ HTTP / HTTPS 通信**
+9. **CloudWatch Logs / S3 / SSM** で運用・監査・障害調査
 
-### 3-1. 全体構成図
+### 1-4. レイヤー分解図
 
-![AWS 全体構成図 - 中小企業向け多段プロキシ・認証・ログ基盤 標準構成案](./images/02_aws_overall_architecture_3proxy.png)
+![レイヤー分解図 - Z アーキテクチャによる責務分離](./images/04_aws_layered_architecture_3proxy.png)
 
-- Customer Account / VPC / 2AZ（AZ-a / AZ-c）に Public / Private Subnet を各 2 配置
-- Private Subnet 内に **Proxy EC2 を 3 段（Proxy1 / Proxy2 / Proxy3）** で構成し、入口・中継・出口の責務を分離
-- 出口は NAT Gateway 経由、PAC は CloudFront + S3 で配布
-- 認証は AD Connector または Samba AD/DC（要件次第で Managed Microsoft AD / IAM Identity Center）
-- 観測は CloudWatch Logs を起点に CloudWatch Alarm / S3 Log Archive、SSM Session Manager で運用
-
-### 3-2. 通信フロー図
-
-![AWS 通信フロー図 - 3段Proxy + PAC + AD 認証](./images/03_aws_network_flow_3proxy_pac.png)
-
-- Client は VPN（AWS Client VPN 想定）で VPC へ入り、PAC で経路を判定
-- Proxy1（入口）→ Proxy2（中継 / ICAP / ClamAV 連携）→ Proxy3（出口）の順に処理
-- 認証は AD（Kerberos / LDAP）で実施し、認可結果を Proxy1 で判定
-- Proxy3 から NAT Gateway を経由してインターネットへ HTTP / HTTPS で到達
-- 各段から CloudWatch Logs にアクセスログ／プロセスログを集約、S3 にアーカイブ
-
-### 3-3. Z アーキテクチャ（レイヤ分解図）
-
-![Z アーキテクチャ - 3段Proxy のレイヤ分解](./images/04_aws_layered_architecture_3proxy.png)
-
-- **Egress / Proxy / Auth / Control / Access / Client** の 6 レイヤと **Logging Layer**（運用横断）に責務を分離
-- レイヤ単位で「変更影響範囲」と「障害切り分け範囲」が定まる構造
-- Logging Layer は CloudWatch Logs / S3 / Alarm / SSM で全レイヤを横断観測
-- このレイヤモデルは Terraform / CloudFormation のモジュール分割単位にも対応させる想定
-
-### 3-4. 運用・自動化フロー図
-
-```mermaid
-graph LR
-    DEV[開発者] -->|PR| GH[GitHub]
-    GH -->|workflow_dispatch| GA[GitHub Actions]
-    GA -->|terraform plan| PLAN[Plan Artifact]
-    PLAN -->|レビュー| REV[人間承認]
-    REV -->|approve| GA2[GitHub Actions apply]
-    GA2 -->|AssumeRole + ExternalID| CUST[Customer Account]
-    CUST --> SSM_RUN[SSM Automation<br/>構築後テスト]
-    SSM_RUN --> RPT[検証レポート<br/>Markdown]
-    CUST --> CT[CloudTrail]
-    CT --> S3CT[S3 Audit Log]
-```
-
-- IaC は **plan → 人間承認 → apply** の段階を必ず通す
-- 顧客アカウントへは **クロスアカウント Role + External ID** でのみ到達
-- 構築後は SSM Automation で疎通・ログ・Alarm を検証し Markdown レポート化
-- すべての操作は CloudTrail で監査記録、S3 にアーカイブ
+- **Client Layer** — 社内クライアント（Windows / Linux）
+- **Access Layer** — AWS Client VPN（将来 Site-to-Site VPN 検討）
+- **Control Layer** — PAC（CloudFront + S3）による経路判定
+- **Auth Layer** — AD Connector + Samba AD/DC（将来 Managed Microsoft AD 検討）
+- **Proxy Layer** — Proxy1 / Proxy2 / Proxy3（責務分離、ICAP / ClamAV 連携）
+- **Egress Layer** — NAT Gateway による出口集約
+- **Logging Layer**（横断観測）— CloudWatch Logs / Alarm、S3 Log Archive、SSM Session Manager
 
 ---
 
-## 4. 推奨構成：中小企業向け標準構成案（B 案）
+## 2. 現行オンプレ構成とAWS移行案の対応関係
+
+| 現行オンプレ要素 | AWS移行案 | 採用理由 | 検証ポイント |
+|---|---|---|---|
+| Windows PC / WSL2 / Docker / VMware | クライアント側はそのまま、AWS には移さない | クライアント環境を変えずに段階移行できる | VPN クライアント配布、PAC 取得経路、社内端末ポリシー |
+| 社内 LAN | AWS Client VPN（将来 Site-to-Site VPN） | クラウド側 VPC への安全な経路、社内 DIRECT との切替が可能 | Split Tunnel 設定、認証方式（証明書 / SSO）、帯域 |
+| Samba AD/DC | **AD Connector で参照**（正本はオンプレ Samba AD/DC に残置） | 認証の正本を変えずに AWS リソースから AD を参照できる | DNS / Kerberos / 時刻同期、AD Connector 設置サブネット |
+| dnsmasq / WPAD | **S3 + CloudFront による PAC 配布** | 静的配信で運用コスト低、CDN 配布でクライアント数増にも対応 | PAC キャッシュ TTL、HTTPS 配布、社内 DNS との整合 |
+| Proxy1（入口・認証） | **EC2 + Squid（Proxy1）** | 既存 ACL / 認証ログ仕様を踏襲できる | AD Connector 連携、認証失敗ログの CW Logs 集約 |
+| Proxy2（中継・分岐） | **EC2 + Squid（Proxy2）** | ICAP 連携・経路分岐の責務を維持 | ICAP 待ち時間、Proxy 間通信の SG 設計 |
+| Proxy3（出口・ACL） | **EC2 + Squid（Proxy3）** | 出口 ACL の責務を維持し、NAT GW へ集約 | NAT GW のポート確保、宛先 ACL 反映フロー |
+| stunnel（中継暗号化） | VPC 内通信は SG + Private Subnet で限定、外部終端は ACM / NLB TLS Listener 検討 | VPC ネイティブで暗号境界を再現、stunnel の運用負荷を削減 | TLS バージョン、証明書ローテーション運用 |
+| ICAP / ClamAV | **EC2 上の ICAP / ClamAV** をサイドカー的に配置 | 既存検査ロジックを継続利用、将来サードパーティ AMI も検討 | 定義ファイル更新、メモリ使用率、スキャン遅延 |
+| Zabbix（死活監視） | **CloudWatch Alarm**（必要に応じて Managed Grafana / Managed Prometheus） | マネージドで運用負荷を削減、SNS 通知へ接続容易 | アラーム閾値、誤検知率、通知先 |
+| Graylog（全文検索） | **OpenSearch Service**（次フェーズで検討、初期必須にしない） | 監査・検索要件が出た段階で追加可能 | ノード数、ストレージ、ログ取り込みパイプライン |
+| Loki（経路判定） | **CloudWatch Logs Insights** | 経路判定（access→cache）を CW Logs Insights で再現可能 | クエリ性能、ログ保存期間、コスト |
+| 自動化（STEP0〜17 Bash） | **Terraform / CloudFormation + SSM Automation + GitHub Actions** | 宣言的構成で再現性を上げる、承認付き展開へ移行 | plan→apply の運用、ロールバック手順、ドリフト検出 |
+
+---
+
+## 3. 構成案A/B/Cの比較
+
+> 採用は **B案（中小企業標準構成案）**。コストと可用性のバランスが良く、3段Proxy で OSS 構成の責務分離を維持しつつ、段階的に C案（監査強化）へ拡張可能。
+
+| 軸 | 案A: 単純移植（PoC） | 案B: 3段Proxy + AWS運用最適化（採用） | 案C: 監査強化 |
+|---|---|---|---|
+| Proxy 構成 | 1 台（責務集約） | **3 段（Proxy1 / 2 / 3、2AZ）** | 3 段以上（2AZ） |
+| NAT Gateway | 1 台 or NAT Instance | 標準 2 台（コスト優先時 1 台案） | 2 台 |
+| ログ集約 | CloudWatch Logs のみ | CW Logs + S3 アーカイブ | CW Logs + S3 + OpenSearch |
+| 認証 | AD Connector | AD Connector（Samba AD/DC 参照） | Managed AD + IAM Identity Center |
+| 検査・監査 | なし | （任意）GuardDuty 検討 | Security Hub + GuardDuty + AWS Config |
+| 可用性 | 低（AZ 障害でサービス断） | 中（2AZ で継続） | 中〜高 |
+| 月額コスト目安 | 小 | 中 | 大 |
+| 運用負荷 | 低（責務集約で切り分けが難しい） | 中 | 中〜高 |
+| 監査性 | 最小限 | CW Logs + CloudTrail | フル監査ログ + 自動コンプラ評価 |
+| 推奨場面 | 検証・学習・低リスク試験導入 | 50〜300 名の標準業務 | 監査・証跡・コンプライアンス要求 |
+
+---
+
+## 4. 採用構成：B案
 
 ```mermaid
 graph TB
-    subgraph INIT[中小企業向け標準構成案 B]
+    subgraph B[B案 中小企業標準構成案]
         VPC1[VPC x 1] --> AZ[2 AZ]
         AZ --> PUB[Public Subnet x 2]
         AZ --> PRV[Private Subnet x 2]
         PRV --> P1[Proxy1<br/>入口・認証]
         PRV --> P2[Proxy2<br/>中継・ICAP / ClamAV]
         PRV --> P3[Proxy3<br/>出口・ACL]
-        PUB --> NAT1[NAT Gateway x 2<br/>各 AZ]
+        PUB --> NAT1[NAT Gateway<br/>初期1台 / 標準2台]
         VPC1 --> CW[CloudWatch Logs / Alarm]
         VPC1 --> SSM[SSM Session Manager]
-        VPC1 --> AD[AD Connector or<br/>Samba AD/DC]
+        VPC1 --> AD[AD Connector<br/>Samba AD/DC 参照]
         VPC1 --> PAC[CloudFront + S3<br/>PAC 配布]
+        VPC1 --> VPN[AWS Client VPN]
     end
 ```
 
 | 構成要素 | 推奨値 | 理由 / トレードオフ |
 |---|---|---|
-| VPC | 1 | シンプル化と運用負荷低減。マルチ VPC は規模拡大時に再検討 |
-| AZ | 2 | 単一 AZ 障害で業務断を避ける。3AZ は中小企業向けでは過剰 |
+| VPC | 1 | シンプル化と運用負荷低減 |
+| AZ | 2 | 単一 AZ 障害で業務断を避ける |
 | Public Subnet | 2 | NAT Gateway 配置用 |
 | Private Subnet | 2 | 3 段 Proxy 配置、Subnet 跨ぎで AZ 障害を吸収 |
-| Proxy EC2 | PoC 1 台 / 標準 3 段（Proxy1/2/3） | OSS ポートフォリオの **入口・中継・出口の責務分離** を AWS 上でも維持。1 台は検証用 |
-| NAT Gateway | 標準 2 台（コスト優先で 1 台案） | 標準は各 AZ 配置で AZ 障害時の出口断を回避。コスト優先時は 1 台案も検討 |
-| CloudWatch Logs | 必須 | アクセスログ・syslog の集約と検索、初期は CW Logs Insights で代替可 |
-| OpenSearch Service | 段階導入 | 小規模ではコストが重く、CW Logs Insights で代替可能。監査要件が明確な場合のみ追加 |
-| CloudWatch Alarm | 必須 | EC2 NW / 出口エラー率 / Proxy プロセス監視 |
+| Proxy EC2 | **3 段（Proxy1 / 2 / 3）** | OSS 構成の責務分離を AWS 上でも維持 |
+| NAT Gateway | 初期 1 台 / 標準 2 台 | コスト優先か可用性優先かのトレードオフ |
+| CloudWatch Logs | 必須 | アクセスログ集約・障害調査 |
+| OpenSearch Service | 次フェーズで検討 | 初期は CW Logs Insights で代替、監査要件が明確化したら追加 |
+| CloudWatch Alarm | 必須 | 異常検知 |
 | SSM Session Manager | 必須 | 踏み台 EC2 を不要化、IAM 監査が効く |
-| AD 連携 | AD Connector / Samba AD/DC / Managed AD / IAM Identity Center | 既存 AD があれば AD Connector が低コスト、新規なら Managed AD、自前運用なら Samba AD/DC |
-| PAC 配布 | CloudFront + S3 or 端末管理 | 端末管理が無ければ CloudFront + S3、Intune / Jamf があれば端末管理側へ寄せる |
-
-**台数・構成の選定理由**
-
-- **3 段 Proxy（Proxy1/2/3）**: OSS ポートフォリオで実装した「入口（認証）／中継（ICAP・暗号化）／出口（ACL）」の責務分離を AWS でも維持し、障害切り分け導線を共通化
-- **PoC 時のみ 1 台**: 検証・学習用に責務集約。AZ 障害時の停止を許容できる場合のみ
-- **NAT Gateway 標準 2 台**: 各 AZ 配置で AZ 障害時の出口断を回避。月額コスト増を許容
-- **NAT Gateway 1 台案**: PoC や許容できる用途のみ。AZ-a 障害で AZ-c の Proxy も出口断する点を明示
-- **OpenSearch を初期必須にしない理由**: 小規模ではコストが重く、CW Logs Insights で同等の検索が可能な範囲では不要
+| AD 連携 | AD Connector | 既存 Samba AD/DC を正本のまま AWS から参照 |
+| PAC 配布 | CloudFront + S3 | 静的配信で運用コスト低 |
+| クライアント接続 | AWS Client VPN | 将来は Site-to-Site VPN へ拡張検討 |
 
 ---
 
-## 5. 構成パターン比較
+## 5. 採用構成の設計判断
 
-![AWS 構成パターン比較 - A 低コスト PoC / B 中小企業標準（推奨）/ C 監査強化](./images/01_aws_architecture_comparison_3proxy.png)
+### 5-1. なぜ3段Proxyを維持するのか
 
-> **推奨は B 案（中小企業標準構成）**：コストと可用性のバランスが良く、3 段 Proxy で OSS 構成の責務分離を維持しつつ、段階的に C 案（監査強化）へ拡張可能。
+- **Proxy1：認証・入口制御** — AD 認証、初期 ACL、入口での識別
+- **Proxy2：経路分岐・ICAP連携・将来拡張** — 内部 / 外部の振り分け、ICAP / ClamAV 連携、将来の検査機能の追加先
+- **Proxy3：出口制御** — 宛先 ACL の最終チェック、NAT GW への集約点
+- **目的は単純な冗長化ではなく、責務分離による障害切り分け** — どの段で問題が起きたかをログで切り分けられる構造を AWS 上でも維持する
 
-| 軸 | パターン A: 低コスト PoC | パターン B: 中小企業標準（推奨） | パターン C: 監査強化 |
+### 5-2. なぜProxyをPrivate Subnetに置くのか
+
+- **外部から直接アクセスさせない** — Proxy にグローバル IP を持たせない
+- **VPN経由でのみ接続** — クライアントから Proxy への到達は AWS Client VPN を経由
+- **Internet向け通信はNAT Gatewayに集約** — 出口を一点に絞ることで監査と制御を容易にする
+- **Security Group で通信元・通信先を制限** — Proxy 間 / Proxy → NAT GW / Proxy → AD Connector 等を最小権限で限定
+
+### 5-3. なぜPACを使うのか
+
+- **社内通信は DIRECT** — VPC 内・社内向けは Proxy を経由せず効率化
+- **外部通信は Proxy 経由** — インターネット向けのみ Proxy で集約制御
+- **複数 Proxy への振り分け** — Proxy1 / Proxy2 / Proxy3 や将来の追加 Proxy へ動的に分配
+- **障害時・検証時の経路切替** — PAC の差し替えのみで経路を切替可能
+
+### 5-4. なぜAD Connectorを使うのか
+
+- **認証の正本は Samba AD/DC に残す** — オンプレの ID 基盤を変更せずに移行
+- **AWS 側は参照口として AD Connector を使う** — マネージドな AD 接続点を提供
+- **Managed Microsoft AD は将来移行候補** — ID 基盤を AWS 側に集約する段階で再検討
+- **連携検証は DNS / Kerberos / 時刻同期を含めて行う** — Kerberos 前提の SPN・逆引き・時刻ずれを検証対象とする
+
+### 5-5. なぜCloudWatch / S3 / SSMを使うのか
+
+- **CloudWatch Logs：ログ収集・障害調査** — Proxy / ICAP / VPN ログを統一的に集約
+- **CloudWatch Alarm：異常検知** — 認証失敗率、出口エラー率、プロセス停止を即時検知
+- **S3：長期保管・ライフサイクル管理** — Standard → Infrequent Access → Glacier で監査ログを安価に保管
+- **SSM Session Manager：踏み台不要・SSH 鍵管理削減** — IAM 監査と CloudTrail で操作証跡を残せる
+
+### 5-6. なぜB案を採用するのか
+
+- **A案は低コストだが運用負荷が高い** — 1 台に責務が集中し、障害切り分けが難しい
+- **C案は高機能だがコストと複雑性が高い** — 監査要件が明確でない段階では過剰
+- **B案は既存の強みを維持しつつ AWS 運用へ最適化できる** — 3 段 Proxy の責務分離を残しつつ、ログ・監視・運用は AWS のマネージドへ寄せる
+- **運用保守経験を AWS 設計に接続しやすい** — オンプレで身につけた切り分け観点をそのまま面接・実装で語れる
+
+### 5-7. Well-Architected 6本柱との対応
+
+| 柱 | 設計上の考慮 | 採用 / 検討する AWS サービス | トレードオフ |
 |---|---|---|---|
-| Proxy EC2 | 1 台（責務集約） | 3 段（Proxy1 / 2 / 3、2AZ） | 3 段以上（2AZ） |
-| NAT Gateway | 1 台 or NAT Instance | 2 台（各 AZ） | 2 台 |
-| ログ集約 | CloudWatch Logs のみ | CW Logs + S3 アーカイブ | CW Logs + S3 + OpenSearch |
-| 認証 | AD Connector | AD Connector / Samba AD/DC / Managed AD | Managed AD + IAM Identity Center |
-| 検査・監査 | なし | （任意）GuardDuty 検討 | Security Hub + GuardDuty + AWS Config |
-| 可用性 | 低（AZ 障害でサービス断） | 中（AZ 障害でも継続） | 中〜高 |
-| 月額コスト目安 | 小 | 中 | 大 |
-| 運用負荷 | 低 | 中 | 中〜高 |
-| 監査性 | 最小限 | CW Logs + CloudTrail | フル監査ログ + 自動コンプラ評価 |
-| 初期導入のしやすさ | ◎ | ○ | △（要件整理が必須） |
-| 推奨場面 | 検証・学習・小規模試験導入 | 50〜300 名の標準業務 | 監査・証跡・コンプライアンス要求 |
-
-**B 案を推奨する理由**
-- OSS ポートフォリオの「入口・中継・出口」責務分離を AWS でも維持できる
-- 運用保守がしやすく、段階的に C 案（OpenSearch / Security Hub 等）へ拡張できる
-- NAT Gateway 2 台 + Multi-AZ で AZ 障害影響を最小化しつつ、コストは中規模に収まる
+| Operational Excellence | IaC化・実行前承認・構築後検証 | Terraform / CFn, SSM Automation, GitHub Actions | 自動化整備コスト vs 手動運用負荷 |
+| Security | 最小権限 IAM・SG 最小化・SSM Session Manager・CloudTrail | IAM Identity Center, STS AssumeRole, CloudTrail | セキュリティ強化 vs 運用速度 |
+| Reliability | Multi-AZ・Proxy 多段冗長・Alarm | Multi-AZ, CloudWatch Alarm | 冗長化コスト vs 単一障害許容 |
+| Performance Efficiency | 適切なインスタンス・キャッシュ・スケール余地 | t3 / t3a / m6i, Squid キャッシュ | 過剰スペック vs 性能不足 |
+| Cost Optimization | NAT GW 数・OpenSearch 段階導入・S3 ライフサイクル | Cost Explorer, Budgets, Compute Savings Plans | 可用性 vs 月額コスト |
+| Sustainability | 低消費インスタンス・不要リソース削除 | Graviton (t4g / c7g), Instance Scheduler | 互換性検証コスト vs 消費電力削減 |
 
 ---
 
-## 6. OSS 構成との対応表
+## 6. 運用・監視・ログ設計
 
 ```mermaid
 graph LR
-    OSS[OSS 構成] --> AWS2[AWS 設計案]
-    OSS --- O1[Squid / stunnel]
-    OSS --- O2[OpenLDAP / Samba AD / Kerberos]
-    OSS --- O3[dnsmasq / PAC]
-    OSS --- O4[Loki / Graylog / OpenSearch]
-    OSS --- O5[Zabbix]
-    OSS --- O6[Docker Compose / Bash]
+    PX[Proxy1/2/3] -->|access.log<br/>cache.log| CW[CloudWatch Logs]
+    ICAP[ICAP / ClamAV] --> CW
+    VPN[Client VPN] --> CW
+    CW --> ALM[CloudWatch Alarm]
+    CW --> S3A[S3 Log Archive<br/>ライフサイクル管理]
+    CW -.次フェーズ.-> OS[OpenSearch Service]
+    ALM --> SNS[SNS / Email / Slack]
+    SSM[SSM Session Manager] --> CT[CloudTrail]
+    CT --> S3A
 ```
 
-| OSS（現構成） | AWS 展開案 | 設計判断のポイント |
-|---|---|---|
-| Squid Proxy（Proxy1〜3） | EC2 上の Squid（基本案） / Network Firewall（出口制御特化時） | アクセスログ仕様や PAC 配布など Squid 固有挙動を残す場合は EC2、出口 ACL 集約だけなら Network Firewall も検討 |
-| stunnel（中継暗号化） | VPC 内通信は SG + Private Subnet で限定、TLS 終端は ACM / NLB TLS Listener 検討 | stunnel 相当の責務は VPC + ACM の組合せに置換、必要なら NLB で TLS Listener |
-| OpenLDAP / Samba AD / Kerberos | AWS Managed Microsoft AD / AD Connector / IAM Identity Center | 新規なら Managed AD、既存 AD があれば AD Connector、ユーザー単位 SSO は IAM Identity Center |
-| dnsmasq / PAC | Route 53 Resolver / Route 53 Resolver DNS Firewall / S3 + CloudFront | DNS 解決は Resolver、ドメイン経路制御は DNS Firewall、PAC 配布は S3 + CloudFront か端末管理 |
-| Loki / Graylog / OpenSearch | CloudWatch Logs / OpenSearch Service / S3 アーカイブ | 経路判定は CW Logs Insights、全文検索は OpenSearch、長期保管は S3 |
-| Zabbix（TLS-PSK + Sidecar） | CloudWatch Alarm / Managed Grafana / Managed Prometheus | 死活監視は CW Alarm、ダッシュボードは Managed Grafana、メトリクス基盤は Managed Prometheus |
-| Docker Compose | EC2 + AMI（最初は素直） / ECS（責務分離時） / Terraform / CloudFormation | 単純移植は EC2、責務単位の再設計時は ECS、宣言的構成は Terraform / CloudFormation |
-| Bash 自動化（STEP0〜17） | Terraform / CloudFormation + SSM Automation + GitHub Actions | 構成変更は Terraform、構築後検証は SSM Automation、起動と承認は GitHub Actions workflow_dispatch |
+- **ログ収集**: Proxy / ICAP / VPN すべて CloudWatch Logs に集約。障害時は時系列で経路を追える
+- **ログ相関**: 認証失敗（407）→ ACL 拒否（403）→ ICAP 遮断 の順で切り分けるフローを CW Logs Insights で再現
+- **長期保管**: S3 へ転送し、Standard → IA → Glacier でコスト最適化
+- **異常検知**: CloudWatch Alarm（認証失敗率・出口エラー率・プロセス停止）→ SNS 通知
+- **運用アクセス**: SSM Session Manager に統一し、踏み台 EC2・SSH 鍵を排除
+- **監査**: すべての操作を CloudTrail に記録、S3 アーカイブと CloudTrail Insights を併用
+- **次フェーズで検討**: OpenSearch Service / Managed Grafana / Managed Prometheus（要件が明確化したら追加）
 
 ---
 
-## 7. Well-Architected 6 本柱との対応
+## 7. EC2インスタンス選定とコスト最適化方針
 
-```mermaid
-graph TD
-    WA[Well-Architected<br/>6 本柱] --> OE[Operational Excellence]
-    WA --> SEC[Security]
-    WA --> REL[Reliability]
-    WA --> PE[Performance Efficiency]
-    WA --> CO[Cost Optimization]
-    WA --> SUS[Sustainability]
-```
+> **以下は実測値ではなく、初期検証時の仮説** です。次フェーズの検証で実測ベースに更新予定。
 
-| 柱 | この設計で考慮すること | 採用 / 検討する AWS サービス | 次フェーズで検証予定 | トレードオフ |
-|---|---|---|---|---|
-| Operational Excellence | IaC 化・実行前承認・構築後検証・Runbook 化 | Terraform / CloudFormation, SSM Automation, GitHub Actions | plan → apply → 検証の自動レポート出力 | 自動化の整備コスト vs 手動運用負荷 |
-| Security | 最小権限 IAM・クロスアカウント + External ID・SG 最小化・SSM セッション管理 | IAM Identity Center, STS AssumeRole, SSM Session Manager, CloudTrail | 一時 Role の自動失効、CloudTrail Insights | セキュリティ強化 vs 運用速度 |
-| Reliability | Multi-AZ・Proxy 冗長・Alarm・自動復旧 | Multi-AZ, Auto Scaling（将来）, CloudWatch Alarm | EC2 自動復旧、ALB ヘルスチェック導入 | 冗長化コスト vs 単一障害許容 |
-| Performance Efficiency | 適切なインスタンスタイプ・キャッシュ・スケール余地 | t3 / t3a / m6i, Squid キャッシュ, Auto Scaling | 負荷試験で適正サイジング | 過剰スペック vs 性能不足 |
-| Cost Optimization | NAT GW 数・OpenSearch 段階導入・Savings Plans 検討 | Cost Explorer, Budgets, Compute Savings Plans | 月額コストレポートを CW Dashboard 化 | 可用性 vs 月額コスト |
-| Sustainability | 低消費インスタンス（Graviton）・不要リソース削除・自動停止 | t4g / c7g (Graviton), Instance Scheduler | Graviton 移行検証、夜間停止 | 互換性検証コスト vs 消費電力削減 |
+| コンポーネント | 初期候補 | 起動方針 | 選定理由 | 監視項目 | 見直し条件 |
+|---|---|---|---|---|---|
+| **Proxy1** | t3.small または t3.medium | 常時起動 | 認証・入口制御を担当、AD 連携時の CPU / メモリを想定 | CPU / メモリ / 認証失敗数 | レイテンシ悪化、ピーク時にリソース不足 |
+| **Proxy2** | t3.small または t3.medium | 常時起動 | 経路分岐・ICAP 連携を担当、ICAP 待ちが性能要因 | レイテンシ / ICAP 待ち / メモリ | ICAP 連携の応答遅延、検査スループット不足 |
+| **Proxy3** | t3.small | 常時起動 | 出口制御中心、ACL 評価が主処理 | 通信量 / 拒否ログ / NAT 利用率 | 通信量増加、リソース不足 |
+| **ICAP / ClamAV** | t3.medium 以上を検討 | 常時起動 | ClamAV はメモリを多く使用、定義ファイル更新が走る | メモリ使用率 / 定義ファイル更新 / スキャン遅延 | スキャン遅延が増えた場合 |
+| **NAT Gateway** | 初期 1 台 | 常時起動 | コスト優先、可用性要件に応じて AZ ごとに配置 | バイトアウト / エラー率 / ポート使用率 | AZ 障害許容を上げる場合は 2 台化 |
+| **AD Connector** | small / large | 常時起動 | 既存 Samba AD/DC を参照 | 接続失敗 / Kerberos エラー | ユーザー数増、レイテンシ悪化 |
+| **AWS Client VPN** | 利用人数ベースで段階拡張 | 常時起動 | リモート接続の終端 | 同時接続数 / 認証失敗数 | リモート利用者の増減 |
+| **OpenSearch Service** | 初期必須にしない | - | 監査・検索要件が出た段階で追加 | 検索レイテンシ / ストレージ使用率 | 検索要件の発生時 |
+| **Managed Microsoft AD** | 初期必須にしない | - | ID 基盤を AWS へ移行する場合に検討 | - | ID 基盤刷新時 |
 
-> 古い 5 本柱ではなく **6 本柱（Sustainability 含む）** で整理しています。
+**コスト最適化方針**
 
----
-
-## 8. SAA / SOA 知識が活きるポイント
-
-```mermaid
-graph LR
-    SAA[SAA 観点<br/>設計] --- VPC2[VPC 設計]
-    SAA --- SUB[Subnet / RouteTable]
-    SAA --- SG[SG / NACL]
-    SAA --- IAM2[IAM Role]
-    SAA --- HA[Multi-AZ / NLB / Route 53]
-    SAA --- OBS[CloudWatch / OpenSearch]
-    SAA --- COST[Cost Optimization]
-
-    SOA[SOA 観点<br/>運用] --- LOG[CW Logs / Metrics / Alarm]
-    SOA --- SSM2[Systems Manager]
-    SOA --- AUTO[Automation Runbook]
-    SOA --- PATCH[Patch / Inventory]
-    SOA --- ARCH[S3 ログ保管]
-    SOA --- TS[障害時の確認手順]
-    SOA --- AUDIT[権限・監査]
-```
-
-**SAA 観点（設計判断に効くポイント）**
-- VPC / Subnet / Route Table / SG / NACL の責務分離設計
-- IAM Role 最小権限、Multi-AZ 冗長化、NLB / Route 53 ルーティング選択
-- CloudWatch / OpenSearch の使い分け、Cost Optimization の構成判断
-
-**SOA 観点（運用判断に効くポイント）**
-- CloudWatch Logs / Metrics / Alarm を起点とした切り分けフロー
-- SSM Automation Runbook / Patch / Inventory による運用標準化
-- S3 ログ保管・障害時確認手順・権限と監査の運用設計
+- 初期は **1AZ + NAT Gateway 1 台** で検証
+- 要件に応じて **2AZ 化 + NAT 2 台** に段階拡張
+- **S3 ライフサイクル**（Standard → IA → Glacier）でログ保管コストを抑制
+- **OpenSearch / Network Firewall は段階導入** — 初期は CW Logs Insights で代替
+- PoC では **夜間停止 / Instance Scheduler** も検討
+- ただし Proxy 経路は利用時間帯の通信前提となるため、**標準運用では常時起動を基本とする**
 
 ---
 
-## 9. 顧客アカウントへの安全な展開方式
+## 8. 次フェーズのIaC・自動化検討
+
+> **「ボタン1つで構築完了」ではなく、「承認付きIaC展開フロー」** を目指します。
+> 自動化の目的は楽をすることではなく、**安全に、レビュー可能に、再現性高く構築する** ことです。
 
 ```mermaid
 graph LR
-    subgraph DEV[開発アカウント]
-        ENG[エンジニア]
-        TF[Terraform / GH Actions]
-    end
-    subgraph CUST2[顧客アカウント]
-        XR[Cross Account Role<br/>+ External ID<br/>作業期間限定]
-        TARGET[VPC / EC2 / etc]
-        SSM3[SSM Automation]
-        CT[CloudTrail]
-    end
-    ENG -->|事前 plan 提示| REV[実行前承認]
-    REV --> TF
-    TF -->|sts:AssumeRole<br/>+ ExternalID| XR
-    XR --> TARGET
-    XR --> SSM3
-    SSM3 --> RPT[実行後レポート]
-    XR --> CT
-    CT --> S3CT[S3 監査ログ]
-    REV -.作業終了後.-> DEL[Role 削除 / 信頼ポリシー無効化]
+    DEV[依頼者] -->|workflow_dispatch| GA[GitHub Actions]
+    GA -->|terraform plan| PLAN[Plan Artifact<br/>差分を Markdown 化]
+    PLAN --> REV[人間レビュー<br/>差分確認]
+    REV -->|approve| APPLY[terraform apply<br/>via AssumeRole + ExternalID]
+    APPLY --> AWS[顧客 / 検証 AWS アカウント]
+    AWS --> SSM[SSM Automation<br/>構築後チェック]
+    SSM --> RPT[Markdown 検証レポート]
+    AWS --> CT[CloudTrail<br/>操作証跡]
 ```
 
-**禁止事項**
-- 顧客 root ユーザーの利用
-- 顧客アカウントに自分の IAM ユーザーを作成すること
-- 永続的なアクセスキーの共有
-- 管理者権限を恒常付与する運用
-- 顧客環境への無承認の自動変更
+**設計原則**
 
-**推奨事項**
-- 顧客アカウント側で **作業期間限定の Cross Account Role** を作成
-- **External ID** を必ず設定し、Confused Deputy を防ぐ
-- ポリシーは Terraform / CloudFormation の対象リソースに限定した **最小権限**
-- 作業ログは CloudTrail に集約し S3 へアーカイブ、CloudTrail Insights を有効化
-- 作業前: Terraform plan を Markdown 化して提示し、人間が承認してから apply
-- 作業後: SSM Automation で疎通・ログ・Alarm を確認し Markdown レポート化
-- 作業終了時: Role を削除または信頼ポリシーから AssumeRole を外す
+- **コード化対象**: VPC / Subnet / Route Table / Security Group / EC2 / IAM / CloudWatch（Terraform または CloudFormation）
+- **起動方式**: GitHub Actions の `workflow_dispatch` で手動実行
+- **レビュー必須**: `terraform plan` の差分を Artifact / PR コメントとして提示し、**人間が差分を確認してから apply**
+- **顧客環境への展開**: Cross Account Role + External ID を検討、root ユーザや永続アクセスキーは使わない
+- **監査**: すべての操作を CloudTrail で記録、S3 アーカイブ
+- **構築後チェック**: SSM Automation Runbook で疎通・ログ・Alarm 状態を確認し、Markdown レポート化
 
----
+**承認付きIaC展開フローのステップ案**
 
-## 10. 承認付きセルフサービス構築フロー
-
-> 「ボタン1つで構築」を **承認付きセルフサービス構築フロー（ワークフロー起動型の IaC 展開）** として実務寄りに再設計した案です。
-
-```mermaid
-graph LR
-    DEV2[依頼者] -->|workflow_dispatch| GH2[GitHub Actions]
-    GH2 -->|terraform plan| PLAN2[Plan Artifact<br/>Markdown 化]
-    PLAN2 --> REV2[実行前承認<br/>人間レビュー]
-    REV2 -->|approve| APPLY[terraform apply<br/>via AssumeRole + ExternalID]
-    APPLY --> CUST3[顧客アカウント]
-    CUST3 --> SSM4[SSM Automation<br/>構築後テスト]
-    SSM4 --> CW2[CloudWatch Logs / Alarm 確認]
-    CW2 --> RPT2[Markdown 検証レポート]
-    RPT2 --> NOTIFY[Slack / Email 通知]
-```
-
-| Step | 操作 | 担当 / 主体 | 出力 |
+| Step | 操作 | 担当 | 出力 |
 |---|---|---|---|
 | 1 | workflow_dispatch でジョブ起動 | 依頼者 | Run ID |
-| 2 | Terraform plan を実行 | GitHub Actions | plan.txt / Markdown 要約 |
-| 3 | plan を Artifact として PR / Issue にコメント | GitHub Actions | レビュー対象 |
-| 4 | レビュー & 承認 | 人間（複数名推奨） | Approve |
-| 5 | Terraform apply（AssumeRole + External ID） | GitHub Actions | apply ログ |
-| 6 | SSM Automation で構築後テスト実行 | SSM Automation | テスト出力 JSON |
+| 2 | terraform plan を実行 | GitHub Actions | plan.txt / Markdown 要約 |
+| 3 | plan を Artifact / PR コメントへ | GitHub Actions | レビュー対象 |
+| 4 | 差分レビュー & 承認 | 人間（複数名推奨） | Approve |
+| 5 | terraform apply（AssumeRole + External ID） | GitHub Actions | apply ログ |
+| 6 | SSM Automation で構築後チェック | SSM Automation | テスト結果 JSON |
 | 7 | CloudWatch Logs / Alarm 状態を確認 | SSM Automation | Markdown レポート |
-| 8 | レポートを Artifact / Slack に通知 | GitHub Actions | レビュー証跡 |
+| 8 | レポートを Artifact / Slack 通知 | GitHub Actions | レビュー証跡 |
 
 ---
 
-## 11. 簡易テスト・動作テスト案
-
-```mermaid
-graph LR
-    BUILD[構築完了] --> NW[ネットワーク確認]
-    NW --> ACC[アクセス確認]
-    ACC --> ROUTE[経路確認]
-    ROUTE --> LOG2[ログ確認]
-    LOG2 --> MON[監視確認]
-    MON --> PERM[権限確認]
-    PERM --> DEL2[削除手順確認]
-    DEL2 --> RPT3[Markdown 検証レポート]
-```
-
-**構築後テスト項目（SSM Automation Runbook 想定）**
-
-| カテゴリ | 確認項目 | 合格基準 |
-|---|---|---|
-| ネットワーク | VPC / Subnet / Route Table 作成 | terraform state list に存在 |
-| ネットワーク | Proxy EC2 への TCP 疎通 | SSM Run Command で `nc -zv` 成功 |
-| アクセス | SSM Session Manager で Proxy へログイン | start-session 成功 |
-| 経路 | PAC ファイルが S3 / CloudFront から取得可能 | curl 200 OK |
-| 経路 | Proxy 経由 HTTP / HTTPS が成功 | curl 経由でステータス 200 |
-| ログ | アクセスログが CloudWatch Logs に転送 | LogGroup にイベント存在 |
-| 監視 | Alarm が OK 状態 | describe-alarms で OK |
-| 権限 | EC2 IAM Role が最小権限 | iam simulate-principal-policy で確認 |
-| 削除 | terraform destroy でリソース削除 | state が空、CloudTrail に削除記録 |
-
-**サンプル検証レポート（Markdown）**
-
-```markdown
-# AWS Deployment Verification Report
-- Run ID: 2026-04-28-0001
-- Account: 1234XXXXXXXX
-- Region: ap-northeast-1
-- Branch: feat/aws-deployment-design
-
-## 1. ネットワーク
-- VPC: OK 作成
-- Subnet x 4: OK 作成
-- NAT Gateway x 1: OK Active
-
-## 2. Proxy
-- EC2-a (Proxy): OK running, SSM connect OK
-- EC2-c (Proxy): OK running, SSM connect OK
-- HTTP via Proxy: OK 200
-- HTTPS via Proxy: OK 200
-
-## 3. ログ
-- /aws/ec2/proxy/access.log: OK ingest (20 events / 5min)
-- S3 archive bucket: OK object 出現
-
-## 4. 監視
-- Alarm "ProxyHighErrorRate": OK
-- Alarm "NATPortAllocation": OK
-
-## 5. 削除手順
-- terraform destroy: OK Dry-run のみ実施
-
-Reviewer: gan2
-Approval: pending
-```
-
----
-
-## 12. 次フェーズの実装ロードマップ
-
-```mermaid
-graph LR
-    P1[Phase 1<br/>設計図・判断表] --> P2[Phase 2<br/>Terraform 最小構成]
-    P2 --> P3[Phase 3<br/>CW Logs / SSM 検証]
-    P3 --> P4[Phase 4<br/>GitHub Actions<br/>workflow_dispatch]
-    P4 --> P5[Phase 5<br/>クロスアカウント Role 検証]
-    P5 --> P6[Phase 6<br/>SSM Automation で<br/>構築後テスト自動化]
-    P6 --> P7[Phase 7<br/>面接用 1 枚図 /<br/>10 分説明資料化]
-```
+## 9. 今後の検証ロードマップ
 
 | Phase | 内容 | 成果物 |
 |---|---|---|
-| 1 | 設計図・判断表作成 | 本ページ（aws-deployment-plan.md） |
-| 2 | Terraform 最小構成（VPC / Subnet / Proxy EC2 / NAT GW） | terraform/ ディレクトリ |
+| 1 | 設計図・対応関係表・判断ドキュメントの整備 | 本ページ（aws-deployment-plan.md） |
+| 2 | Terraform 最小構成（VPC / Subnet / Proxy EC2 / NAT GW）を **次フェーズで構築予定** | terraform/ ディレクトリ |
 | 3 | CloudWatch Logs / Alarm / SSM 接続検証 | 検証スクショ + Markdown |
 | 4 | GitHub Actions workflow_dispatch + plan / apply 分離 | .github/workflows/aws-deploy.yml |
-| 5 | クロスアカウント Role + External ID 検証 | role-trust-policy.json + 検証ログ |
-| 6 | SSM Automation Runbook で構築後テスト自動化 | runbook.yaml + サンプルレポート |
-| 7 | 面接用 1 枚図 / 10 分説明資料化 | interview-pitch.md / PPTX 化 |
+| 5 | クロスアカウント Role + External ID の検証 | role-trust-policy.json + 検証ログ |
+| 6 | SSM Automation Runbook で構築後チェックを自動化 | runbook.yaml + サンプルレポート |
+| 7 | EC2 インスタンスサイズの実測検証・コストレポート | CloudWatch Dashboard + 月次レポート |
+| 8 | 面接用 1 枚図 / 10 分説明資料化 | interview-pitch.md / PPTX |
 
-> 各 Phase は **次フェーズで検証予定** であり、現時点では Phase 1 完了段階です。
+> 各 Phase は **次フェーズで検証予定** であり、現時点では Phase 1 完了段階。
 
 ---
 
-## 13. 面接での説明用まとめ
+## 10. 面接での説明ポイント
 
-このAWS展開案で示したいのは、単にAWSサービス名を知っていることではなく、既存のOSS構成で分離した「通信・認証・暗号化・ログ・監視」の責務を、AWS上でも **可用性・セキュリティ・コスト・運用性** の観点で再設計できることです。
+このAWS移行設計案で示したいのは、単に AWS サービス名を知っていることではなく、既存の OSS 3段Proxy で分離した「通信・認証・暗号化・ログ・監視」の責務を、AWS 上でも **可用性・セキュリティ・コスト・運用性** の観点で再設計できることです。
 
-また、顧客アカウントへの展開についても、単なる自動構築ではなく、**最小権限・承認・監査・実行後検証** を含めた **承認付きセルフサービス構築フロー** として、安全な導入フローを設計することを目指しています。
+また、顧客アカウントへの展開についても、「ボタン1つで構築」ではなく、**最小権限・承認・監査・実行後検証** を含む **承認付きIaC展開フロー** として安全な導入を目指しています。
 
 **話す順序の例（面接 5 分）**
-1. このページは「設計段階」「中小企業向け標準構成案（B 案）」（30秒）
-2. 全体構成図（02）→ 3 段 Proxy で OSS の責務分離を AWS でも維持（1 分）
-3. Z アーキテクチャ図（04）→ レイヤ別責務分離と Logging Layer の横断観測（45 秒）
-4. 構成パターン A / B / C 比較（01）→ B 推奨理由とトレードオフ（1 分 15 秒）
-5. Well-Architected 6 本柱で設計を裏付け（45 秒）
-6. クロスアカウント + External ID + 承認付きセルフサービス構築フロー（45 秒）
+
+| # | 話す内容 | 所要時間 | 着地点 |
+|---|---|---|---|
+| 1 | このページは「設計案」「AWS 上の構築は未実施・次フェーズで検証予定」 | 30秒 | 実装済みではなく **設計判断を整理した段階** であることを明示 |
+| 2 | 構成比較図（01）→ B 案を採用した理由 | 1分 | 単純移植・監査強化との対比でコスト・可用性・運用負荷の判断軸 |
+| 3 | B案 全体構成図（02）→ 3段Proxy で OSS の責務分離を AWS でも維持 | 1分 | VPC / 2AZ / Proxy1/2/3 / NAT / CW / AD Connector / PAC を一枚図で説明 |
+| 4 | レイヤー分解図（04）→ Client / Access / Control / Auth / Proxy / Egress / Logging | 45秒 | レイヤ別責務分離と Logging Layer の横断観測 |
+| 5 | 設計判断（5-1〜5-6）の中から 1〜2 点を深掘り | 1分15秒 | 例: 「なぜ 3 段を維持するのか」「なぜ AD Connector を選ぶのか」 |
+| 6 | 承認付き IaC 展開フロー | 30秒 | 自動化＝楽ではなく、レビュー可能で再現性の高い展開を目指す |
+
+**SAA / SOA 観点で語れること**
+
+- **SAA（設計）** — VPC / Subnet / SG / NACL の責務分離、IAM Role 最小権限、Multi-AZ、NLB / Route 53 ルーティング選択、CloudWatch / OpenSearch の使い分け、Cost Optimization
+- **SOA（運用）** — CloudWatch Logs / Metrics / Alarm を起点とした切り分けフロー、SSM Automation Runbook、Patch / Inventory による運用標準化、S3 ログ保管、障害時の確認手順、権限・監査の運用設計
 
 ---
 
