@@ -267,25 +267,11 @@ Author: gan2
 - **監査**: すべての操作を CloudTrail に記録、S3 アーカイブと CloudTrail Insights を併用
 - **将来検討**: AWS Network Firewall（ネットワーク監査強化時）
 
-<details>
-<summary>補足図（Mermaid: ログ相関フロー）</summary>
+**補足図：ログ相関フロー**
 
-```mermaid
-graph LR
-    PX[Proxy1/2/3] -->|access.log<br/>cache.log| CW[CloudWatch Logs]
-    ICAP[ICAP / ClamAV] --> CW
-    VPN[Client VPN] --> CW
-    AGT[CloudWatch Agent] --> CW
-    CW -->|Subscription Filter| OS[OpenSearch Service]
-    CW --> ALM[CloudWatch Alarm]
-    CW --> S3A[S3 Log Archive]
-    S3A --> ATN[Athena]
-    ALM --> SNS[SNS / Email / Slack]
-    SSM[SSM Session Manager] --> CT[CloudTrail]
-    CT --> S3A
-```
+![ログ相関図 - Proxy/ICAP/VPN/CWAgent → CloudWatch Logs → OpenSearch / Alarm / S3 → Athena](./images/05_log_correlation_flow.svg)
 
-</details>
+Proxy / ICAP / VPN / CloudWatch Agent からのログを CloudWatch Logs に集約し、Subscription Filter で OpenSearch Service へ配信、CloudWatch Alarm で異常検知、S3 へ長期保管して Athena で SQL 分析、SSM Session Manager の操作証跡は CloudTrail 経由で S3 に集約する流れです。
 
 ---
 
@@ -345,22 +331,11 @@ graph LR
 | 7 | CloudWatch Logs / Alarm 状態を確認 | SSM Automation | Markdown レポート |
 | 8 | レポートを Artifact / Slack 通知 | GitHub Actions | レビュー証跡 |
 
-<details>
-<summary>補足図（Mermaid: 展開フロー）</summary>
+**補足図：IaC 展開フロー**
 
-```mermaid
-graph LR
-    DEV[依頼者] -->|workflow_dispatch| GA[GitHub Actions]
-    GA -->|terraform plan| PLAN[Plan Artifact]
-    PLAN --> REV[人間レビュー]
-    REV -->|approve| APPLY[terraform apply<br/>AssumeRole + ExternalID]
-    APPLY --> AWS[検証 / 顧客 AWS アカウント]
-    AWS --> SSM[SSM Automation<br/>構築後チェック]
-    SSM --> RPT[Markdown 検証レポート]
-    AWS --> CT[CloudTrail]
-```
+![IaC展開フロー - 依頼者 → GitHub Actions（terraform plan）→ 人間レビュー → apply (AssumeRole + ExternalID) → SSM Automation 構築後チェック → Markdown レポート](./images/06_iac_deployment_flow.svg)
 
-</details>
+依頼者の `workflow_dispatch` 起動 → `terraform plan` → 人間レビューと承認 → AssumeRole + External ID で `terraform apply` → SSM Automation で構築後チェック → Markdown 検証レポート出力までを、すべて CloudTrail で監査記録します。
 
 ---
 
