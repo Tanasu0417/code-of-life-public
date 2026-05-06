@@ -11,13 +11,15 @@ https://tanasu0417.github.io/code-of-life-public/
 
 ## 閲覧時間別ガイド
 
-| 時間 | 見ていただきたい場所 | 何が分かるか |
+ドキュメント量が多いため、目的に合わせて以下の時間配分を目安にしてください。
+
+| 想定読者の状況 | 目安 | 推奨ルート |
 |---|---|---|
-| 1分 | この README の下記「ひと目で分かる構成」 | 何を作ったか・どんな技術スタックか |
-| 3分 | [Verification（動作証跡）](https://tanasu0417.github.io/code-of-life-public/verification.html) | 設計どおりに動いている証拠（スクショ／ログ） |
-| 10分 | [Index（設計意図・全体構成）](https://tanasu0417.github.io/code-of-life-public/) | 設計判断の理由・苦労した点・解決アプローチ |
-| 追加 | [AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html) | OSS 基盤を AWS へ移行する場合の設計案（Phase 1/2/3 段階導入・実機未実施） |
-| 補足 | [ポートフォリオ説明用スクリプト](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html) | 口頭で説明する際のスピーカーノート |
+| 軽く内容を把握したい | **約3分** | この README の下記「ひと目で分かる構成」と「主要ドキュメント」 |
+| ある程度時間がある | **約10分** | README 全文 + [Index トップ](https://tanasu0417.github.io/code-of-life-public/) の §1〜§2 / [Verification 概要](https://tanasu0417.github.io/code-of-life-public/verification.html) |
+| 詳細までじっくり見たい | **約30分** | 上記 + [Verification 全文](https://tanasu0417.github.io/code-of-life-public/verification.html) / [Automation](https://tanasu0417.github.io/code-of-life-public/automation.html) / [10分詳細版PPTX](./Mulutiproxy_System_AWS_10min_ver3.pptx) |
+| 設計判断まで深掘りしたい | **追加 約20分** | [AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html)（Phase 1/2/3 段階導入・実機未実施） |
+| 口頭説明用 | — | [ポートフォリオ説明用スクリプト](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html)（5分概要版・10分詳細版に対応） |
 
 ### 発表資料（PPTX）
 
@@ -25,7 +27,7 @@ https://tanasu0417.github.io/code-of-life-public/
 
 | 見たい内容 | 資料 | 目安 |
 |---|---|---|
-| まず概要を知りたい | [5分概要版](./Mulutiproxy_System_AWS_5min%20_ver.2.pptx) | 全体像・代表的なログ切り分け・再現性を短く確認 |
+| まず概要を知りたい | [5分概要版](./Mulutiproxy_System_AWS_5min_ver2.pptx) | 全体像・代表的なログ切り分け・再現性を短く確認 |
 | 詳細まで確認したい | [10分詳細版](./Mulutiproxy_System_AWS_10min_ver3.pptx) | 設計判断・3段Proxy責務分離・認証/DNS/PAC・ログ/監視・AWS移行設計案まで |
 
 ---
