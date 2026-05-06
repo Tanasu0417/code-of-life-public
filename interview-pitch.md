@@ -12,8 +12,8 @@ Author: gan2
 > 本ポートフォリオを短時間で説明するためのスピーカーノートです。
 > 5分概要版・10分詳細版の PPTX と対応しており、技術成果物の背景・構成・検証内容・今後の展開を口頭で説明する際の補助として使用します。
 >
-> - 5分概要版: [`Mulutiproxy_System_AWS_5min _ver.2.pptx`](./Mulutiproxy_System_AWS_5min%20_ver.2.pptx) — 6スライド構成。全体像と代表的な証跡を短く確認する版
-> - 10分詳細版: [`Mulutiproxy_System_AWS_10min (1).pptx`](./Mulutiproxy_System_AWS_10min_ver3.pptx) — 11スライド構成。5分版の詳細版（責務分離・認証/DNS/PAC・ログ/監視・AWS移行設計案まで）
+> - 5分概要版: [`Mulutiproxy_System_AWS_5min_ver2.pptx`](./Mulutiproxy_System_AWS_5min_ver2.pptx) — 6スライド構成。全体像と代表的な証跡を短く確認する版
+> - 10分詳細版: [`Mulutiproxy_System_AWS_10min_ver3.pptx`](./Mulutiproxy_System_AWS_10min_ver3.pptx) — 11スライド構成。5分版の詳細版（責務分離・認証/DNS/PAC・ログ/監視・AWS移行設計案まで）
 
 ---
 
