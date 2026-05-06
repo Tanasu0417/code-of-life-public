@@ -183,7 +183,7 @@ Automation のゴールは「起動完了」ではありません。
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
-    <strong>依存関係込みで “運用可能（healthy）” に到達</strong>していることを示します。
+    <strong>依存関係込みで “検証可能（healthy）” に到達</strong>していることを示します。
   </figcaption>
 </figure>
 

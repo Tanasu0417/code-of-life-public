@@ -9,15 +9,24 @@ https://tanasu0417.github.io/code-of-life-public/
 
 ---
 
-## 採用担当の方へ：閲覧時間別ガイド
+## 閲覧時間別ガイド
 
 | 時間 | 見ていただきたい場所 | 何が分かるか |
 |---|---|---|
 | 30秒 | この README の下記「ひと目で分かる構成」 | 何を作ったか・どんな技術スタックか |
 | 3分 | [Verification（動作証跡）](https://tanasu0417.github.io/code-of-life-public/verification.html) | 設計どおりに動いている証拠（スクショ／ログ） |
 | 10分 | [Index（設計意図・全体構成）](https://tanasu0417.github.io/code-of-life-public/) | 設計判断の理由・苦労した点・解決アプローチ |
-| 追加 | [AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html) | OSS 基盤を AWS へ移行する場合の設計案（Phase 1/2/3 段階導入・実機未実施・技術面接論点まで整理） |
-| 面接 | [面接用ピッチ](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html) | 10分プレゼン用の構成と話す順序 |
+| 追加 | [AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html) | OSS 基盤を AWS へ移行する場合の設計案（Phase 1/2/3 段階導入・実機未実施） |
+| 補足 | [ポートフォリオ説明用スクリプト](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html) | 口頭で説明する際のスピーカーノート |
+
+### 発表資料（PPTX）
+
+短時間で全体像を把握できる発表資料を同梱しています。
+
+| 見たい内容 | 資料 | 目安 |
+|---|---|---|
+| まず概要を知りたい | [5分概要版](./Mulutiproxy_System_AWS_5min%20_ver.2.pptx) | 全体像・代表的なログ切り分け・再現性を短く確認 |
+| 詳細まで確認したい | [10分詳細版](./Mulutiproxy_System_AWS_10min_ver3.pptx) | 設計判断・3段Proxy責務分離・認証/DNS/PAC・ログ/監視・AWS移行設計案まで |
 
 ---
 
@@ -50,8 +59,8 @@ https://tanasu0417.github.io/code-of-life-public/
 - **[Index](https://tanasu0417.github.io/code-of-life-public/)** — 設計意図・全体構成・苦労した点
 - **[Verification](https://tanasu0417.github.io/code-of-life-public/verification.html)** — 動作証跡（スクショ／ログによる裏取り）
 - **[Automation](https://tanasu0417.github.io/code-of-life-public/automation.html)** — 構築・検証・復旧の自動化（再現性）
-- **[AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html)** — OSS 基盤を AWS へ移行する場合の設計案。中小企業向けに **Phase 1（最小）→ Phase 2（B案標準）→ Phase 3（将来拡張）** の段階導入計画、Well-Architected 6 本柱、承認付き IaC 展開フロー、技術面接 Q&A まで整理（**設計段階・AWS 上の実機構築は未実施**。次フェーズで Terraform / CloudFormation / SSM Automation による IaC 化を検証予定）
-- **[面接用ピッチ](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html)** — 10分プレゼン用の構成
+- **[AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html)** — OSS 基盤を AWS へ移行する場合の設計案。中小規模を想定した **Phase 1（最小）→ Phase 2（B案標準）→ Phase 3（将来拡張）** の段階導入計画、Well-Architected 6 本柱、承認付き IaC 展開フローまで整理（**設計段階・AWS 上の実機構築は未実施**。次フェーズで Terraform / CloudFormation / SSM Automation による IaC 化を検証予定）
+- **[ポートフォリオ説明用スクリプト](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html)** — 5分概要版・10分詳細版に対応するスピーカーノート
 
 ---
 
