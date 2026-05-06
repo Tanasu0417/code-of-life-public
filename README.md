@@ -18,7 +18,7 @@ https://tanasu0417.github.io/code-of-life-public/
 | 軽く内容を把握したい | **約3分** | この README の下記「ひと目で分かる構成」と「主要ドキュメント」 |
 | ある程度時間がある | **約10分** | README 全文 + [Index トップ](https://tanasu0417.github.io/code-of-life-public/) の §1〜§2 / [Verification 概要](https://tanasu0417.github.io/code-of-life-public/verification.html) |
 | 詳細までじっくり見たい | **約30分** | 上記 + [Verification 全文](https://tanasu0417.github.io/code-of-life-public/verification.html) / [Automation](https://tanasu0417.github.io/code-of-life-public/automation.html) / [10分詳細版PPTX](./Mulutiproxy_System_AWS_10min_ver3.pptx) |
-| 設計判断まで深掘りしたい | **追加 約20分** | [AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html)（Phase 1/2/3 段階導入・実機未実施） |
+| 設計判断まで深掘りしたい | **約20分** | [AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html)（Phase 1/2/3 段階導入・実機未実施） |
 | 口頭説明用 | — | [ポートフォリオ説明用スクリプト](https://tanasu0417.github.io/code-of-life-public/interview-pitch.html)（5分概要版・10分詳細版に対応） |
 
 ### 発表資料（PPTX）
