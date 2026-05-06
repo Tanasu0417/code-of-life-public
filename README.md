@@ -13,7 +13,7 @@ https://tanasu0417.github.io/code-of-life-public/
 
 | 時間 | 見ていただきたい場所 | 何が分かるか |
 |---|---|---|
-| 30秒 | この README の下記「ひと目で分かる構成」 | 何を作ったか・どんな技術スタックか |
+| 1分 | この README の下記「ひと目で分かる構成」 | 何を作ったか・どんな技術スタックか |
 | 3分 | [Verification（動作証跡）](https://tanasu0417.github.io/code-of-life-public/verification.html) | 設計どおりに動いている証拠（スクショ／ログ） |
 | 10分 | [Index（設計意図・全体構成）](https://tanasu0417.github.io/code-of-life-public/) | 設計判断の理由・苦労した点・解決アプローチ |
 | 追加 | [AWS 移行設計案](https://tanasu0417.github.io/code-of-life-public/aws-deployment-plan.html) | OSS 基盤を AWS へ移行する場合の設計案（Phase 1/2/3 段階導入・実機未実施） |
