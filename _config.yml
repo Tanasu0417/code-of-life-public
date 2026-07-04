@@ -1,4 +1,6 @@
 theme: jekyll-theme-cayman
-title: multiproxy-oss-portfolio
-description: OSS マルチレイヤープロキシ構築ポートフォリオ
+title: Code of Life — Public
+description: 開発内容・技術記事の公開リポジトリ(プロジェクト別)
 show_downloads: false
+plugins:
+  - jekyll-redirect-from

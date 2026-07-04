@@ -1,6 +1,8 @@
 ---
 title: Verification
 layout: default
+redirect_from:
+  - /verification.html
 ---
 
 # Verification
@@ -108,7 +110,7 @@ Author: gan2
 <p style="margin:.8em 0 0 0; opacity:.85;">
 <strong>深掘りされる想定の論点</strong>:
 SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条件（時刻／SPN／DNS）・Loki でのラベル設計・自動化スクリプトの依存順序制御など。<br>
-詳細な設計判断の経緯は <a href="./index.html">index.md</a>「4. 設計補足」「5. 苦労した点」も併読ください。
+詳細な設計判断の経緯は <a href="../index.html">index.md</a>「4. 設計補足」「5. 苦労した点」も併読ください。
 </p>
 
 ---
@@ -135,7 +137,7 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
           <td>全体稼働</td>
           <td>構成要素が欠けなく稼働している（部分稼働ではない）</td>
           <td>
-            <a href="./images/P1-proof-all.png" target="_blank" rel="noopener"><code>P1-proof-all.png</code></a>
+            <a href="../images/P1-proof-all.png" target="_blank" rel="noopener"><code>P1-proof-all.png</code></a>
           </td>
         </tr>
 
@@ -143,7 +145,7 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
           <td>アーキテクチャ</td>
           <td>設計（責務/経路）と実装（稼働要素）が対応している</td>
           <td>
-            <a href="./images/P2-arch-compare.png" target="_blank" rel="noopener"><code>P2-arch-compare.png</code></a>
+            <a href="../images/P2-arch-compare.png" target="_blank" rel="noopener"><code>P2-arch-compare.png</code></a>
           </td>
         </tr>
 
@@ -151,11 +153,11 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
           <td>経路制御（PAC）</td>
           <td>PAC により Proxy1 / Proxy2 / DIRECT が分岐し、ログで裏取りできる</td>
           <td>
-            <a href="./images/pac-flow-normal-vs-direct.png" target="_blank" rel="noopener"><code>pac-flow-normal-vs-direct.png</code></a><br>
-            <a href="./images/pac-client-setting.png" target="_blank" rel="noopener"><code>pac-client-setting.png</code></a><br>
-            <a href="./images/pac-proof-proxy1.png" target="_blank" rel="noopener"><code>pac-proof-proxy1.png</code></a><br>
-            <a href="./images/pac-proof-proxy2.png" target="_blank" rel="noopener"><code>pac-proof-proxy2.png</code></a><br>
-            <a href="./images/pac-proof-direct.png" target="_blank" rel="noopener"><code>pac-proof-direct.png</code></a>
+            <a href="../images/pac-flow-normal-vs-direct.png" target="_blank" rel="noopener"><code>pac-flow-normal-vs-direct.png</code></a><br>
+            <a href="../images/pac-client-setting.png" target="_blank" rel="noopener"><code>pac-client-setting.png</code></a><br>
+            <a href="../images/pac-proof-proxy1.png" target="_blank" rel="noopener"><code>pac-proof-proxy1.png</code></a><br>
+            <a href="../images/pac-proof-proxy2.png" target="_blank" rel="noopener"><code>pac-proof-proxy2.png</code></a><br>
+            <a href="../images/pac-proof-direct.png" target="_blank" rel="noopener"><code>pac-proof-direct.png</code></a>
           </td>
         </tr>
 
@@ -163,9 +165,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
           <td>復号 / 暗号化</td>
           <td>SSLBump と stunnel の責務分離（復号点とTLS境界が明確）</td>
           <td>
-            <a href="./images/double-bump-error.png" target="_blank" rel="noopener"><code>double-bump-error.png</code></a><br>
-            <a href="./images/double-sslbump-proxy1-access-google-500.png" target="_blank" rel="noopener"><code>double-sslbump-proxy1-access-google-500.png</code></a><br>
-            <a href="./images/double-sslbump-proxy2-access3129.png" target="_blank" rel="noopener"><code>double-sslbump-proxy2-access3129.png</code></a><br>
+            <a href="../images/double-bump-error.png" target="_blank" rel="noopener"><code>double-bump-error.png</code></a><br>
+            <a href="../images/double-sslbump-proxy1-access-google-500.png" target="_blank" rel="noopener"><code>double-sslbump-proxy1-access-google-500.png</code></a><br>
+            <a href="../images/double-sslbump-proxy2-access3129.png" target="_blank" rel="noopener"><code>double-sslbump-proxy2-access3129.png</code></a><br>
           </td>
         </tr>
 
@@ -173,11 +175,11 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
           <td>可観測性（Loki）</td>
           <td>経路と失敗点を時系列で追い、原因レイヤで説明できる</td>
           <td>
-            <a href="./images/p6-loki-caseA-proxy1-407.png" target="_blank" rel="noopener"><code>p6-loki-caseA-proxy1-407.png</code></a><br>
-            <a href="./images/p6-loki-caseA-proxy2-nohit.png" target="_blank" rel="noopener"><code>p6-loki-caseA-proxy2-nohit.png</code></a><br>
-            <a href="./images/p6-loki-caseB-proxy2-403.png" target="_blank" rel="noopener"><code>p6-loki-caseB-proxy2-403.png</code></a><br>
-            <a href="./images/p6-loki-caseB-proxy1-nohit.png" target="_blank" rel="noopener"><code>p6-loki-caseB-proxy1-nohit.png</code></a><br>
-            <a href="./images/p6-loki-caseB-proxy2-cache-denied.png" target="_blank" rel="noopener"><code>p6-loki-caseB-proxy2-cache-denied.png</code></a>
+            <a href="../images/p6-loki-caseA-proxy1-407.png" target="_blank" rel="noopener"><code>p6-loki-caseA-proxy1-407.png</code></a><br>
+            <a href="../images/p6-loki-caseA-proxy2-nohit.png" target="_blank" rel="noopener"><code>p6-loki-caseA-proxy2-nohit.png</code></a><br>
+            <a href="../images/p6-loki-caseB-proxy2-403.png" target="_blank" rel="noopener"><code>p6-loki-caseB-proxy2-403.png</code></a><br>
+            <a href="../images/p6-loki-caseB-proxy1-nohit.png" target="_blank" rel="noopener"><code>p6-loki-caseB-proxy1-nohit.png</code></a><br>
+            <a href="../images/p6-loki-caseB-proxy2-cache-denied.png" target="_blank" rel="noopener"><code>p6-loki-caseB-proxy2-cache-denied.png</code></a>
           </td>
         </tr>
 
@@ -185,9 +187,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
           <td>自動化</td>
           <td>環境クリア→起動→初期化→監視/ログ→ヘルス確認まで再現可能</td>
           <td>
-            <a href="./images/all_in_one_overview.png" target="_blank" rel="noopener"><code>all_in_one_overview.png</code></a><br>
-            <a href="./images/all_in_one_summary.png" target="_blank" rel="noopener"><code>all_in_one_summary.png</code></a><br>
-            <a href="./images/healthcheck-output.png" target="_blank" rel="noopener"><code>healthcheck-output.png</code></a>
+            <a href="../images/all_in_one_overview.png" target="_blank" rel="noopener"><code>all_in_one_overview.png</code></a><br>
+            <a href="../images/all_in_one_summary.png" target="_blank" rel="noopener"><code>all_in_one_summary.png</code></a><br>
+            <a href="../images/healthcheck-output.png" target="_blank" rel="noopener"><code>healthcheck-output.png</code></a>
           </td>
         </tr>
 
@@ -203,8 +205,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/P1-proof-all.png" target="_blank" rel="noopener">
-    <img src="./images/P1-proof-all.png" alt="全体稼働（healthcheck / docker ps）確認" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/P1-proof-all.png" target="_blank" rel="noopener">
+    <img src="../images/P1-proof-all.png" alt="全体稼働（healthcheck / docker ps）確認" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -294,8 +296,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/P2-arch-compare.png" target="_blank" rel="noopener">
-    <img src="./images/P2-arch-compare.png" alt="アーキテクチャ図と稼働コンポーネント（docker ps/health）の対応" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/P2-arch-compare.png" target="_blank" rel="noopener">
+    <img src="../images/P2-arch-compare.png" alt="アーキテクチャ図と稼働コンポーネント（docker ps/health）の対応" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -325,8 +327,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/pac-flow-normal-vs-direct.png" target="_blank" rel="noopener">
-    <img src="./images/pac-flow-normal-vs-direct.png" alt="PACによる経路制御の全体概要" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/pac-flow-normal-vs-direct.png" target="_blank" rel="noopener">
+    <img src="../images/pac-flow-normal-vs-direct.png" alt="PACによる経路制御の全体概要" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -348,8 +350,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/pac-client-setting.png" target="_blank" rel="noopener">
-    <img src="./images/pac-client-setting.png" alt="クライアントでのPAC設定" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/pac-client-setting.png" target="_blank" rel="noopener">
+    <img src="../images/pac-client-setting.png" alt="クライアントでのPAC設定" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -367,8 +369,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/pac-proof-proxy1.png" target="_blank" rel="noopener">
-    <img src="./images/pac-proof-proxy1.png" alt="Proxy1経由通信の確認" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/pac-proof-proxy1.png" target="_blank" rel="noopener">
+    <img src="../images/pac-proof-proxy1.png" alt="Proxy1経由通信の確認" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -387,8 +389,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/pac-proof-proxy2.png" target="_blank" rel="noopener">
-    <img src="./images/pac-proof-proxy2.png" alt="Proxy2経由通信の確認" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/pac-proof-proxy2.png" target="_blank" rel="noopener">
+    <img src="../images/pac-proof-proxy2.png" alt="Proxy2経由通信の確認" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -407,8 +409,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/pac-proof-direct.png" target="_blank" rel="noopener">
-    <img src="./images/pac-proof-direct.png" alt="DIRECT通信の確認" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/pac-proof-direct.png" target="_blank" rel="noopener">
+    <img src="../images/pac-proof-direct.png" alt="DIRECT通信の確認" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -486,8 +488,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/double-bump-error.png" target="_blank" rel="noopener">
-    <img src="./images/double-bump-error.png" alt="二重SSLBumpによるブラウザエラー" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/double-bump-error.png" target="_blank" rel="noopener">
+    <img src="../images/double-bump-error.png" alt="二重SSLBumpによるブラウザエラー" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。二重SSLBumpによりブラウザ側でエラーとなる例です。
@@ -496,8 +498,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/double-sslbump-proxy1-access-google-500.png" target="_blank" rel="noopener">
-    <img src="./images/double-sslbump-proxy1-access-google-500.png" alt="Proxy1側のエラーログ（入口）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/double-sslbump-proxy1-access-google-500.png" target="_blank" rel="noopener">
+    <img src="../images/double-sslbump-proxy1-access-google-500.png" alt="Proxy1側のエラーログ（入口）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。Proxy1（入口）側にエラーが記録され、失敗をログで追跡できることを示します。
@@ -506,8 +508,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/double-sslbump-proxy2-access3129.png" target="_blank" rel="noopener">
-    <img src="./images/double-sslbump-proxy2-access3129.png" alt="Proxy2側のSSL再復号ログ（3129）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/double-sslbump-proxy2-access3129.png" target="_blank" rel="noopener">
+    <img src="../images/double-sslbump-proxy2-access3129.png" alt="Proxy2側のSSL再復号ログ（3129）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。Proxy2 側でも復号を試みることで、同一セッションへの二重復号となり破綻する例です。
@@ -677,9 +679,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- ②CaseA：打鍵結果 -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/p5-caseA-curl-407.png" target="_blank" rel="noopener">
+  <a href="../images/p5-caseA-curl-407.png" target="_blank" rel="noopener">
     <img
-      src="./images/p5-caseA-curl-407.png"
+      src="../images/p5-caseA-curl-407.png"
       alt="Case A 打鍵結果（Proxy1で407）"
       loading="lazy"
       style="
@@ -718,9 +720,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- ③CaseA：Loki画面① -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/p6-loki-caseA-proxy1-407.png" target="_blank" rel="noopener">
+  <a href="../images/p6-loki-caseA-proxy1-407.png" target="_blank" rel="noopener">
     <img
-      src="./images/p6-loki-caseA-proxy1-407.png"
+      src="../images/p6-loki-caseA-proxy1-407.png"
       alt="Case A Loki（Proxy1でstatus=407）"
       loading="lazy"
       style="
@@ -742,9 +744,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- ④ CaseA：Loki画面②（Proxy2 NO HIT） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/p6-loki-caseA-proxy2-nohit.png" target="_blank" rel="noopener">
+  <a href="../images/p6-loki-caseA-proxy2-nohit.png" target="_blank" rel="noopener">
     <img
-      src="./images/p6-loki-caseA-proxy2-nohit.png"
+      src="../images/p6-loki-caseA-proxy2-nohit.png"
       alt="Case A Loki（Proxy2でNO HIT）"
       loading="lazy"
       style="
@@ -777,9 +779,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- ⑤CaseB：打鍵結果 -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/p5-caseB-curl-403.png" target="_blank" rel="noopener">
+  <a href="../images/p5-caseB-curl-403.png" target="_blank" rel="noopener">
     <img
-      src="./images/p5-caseB-curl-403.png"
+      src="../images/p5-caseB-curl-403.png"
       alt="Case B 打鍵結果（Proxy2:3131で403）"
       loading="lazy"
       style="
@@ -818,9 +820,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- ⑥CaseB：Loki画面① -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/p6-loki-caseB-proxy2-403.png" target="_blank" rel="noopener">
+  <a href="../images/p6-loki-caseB-proxy2-403.png" target="_blank" rel="noopener">
     <img
-      src="./images/p6-loki-caseB-proxy2-403.png"
+      src="../images/p6-loki-caseB-proxy2-403.png"
       alt="Case B Loki（Proxy2でstatus=403）"
       loading="lazy"
       style="
@@ -842,9 +844,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- ⑦CaseB：Loki画面② -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/p6-loki-caseB-proxy1-nohit.png" target="_blank" rel="noopener">
+  <a href="../images/p6-loki-caseB-proxy1-nohit.png" target="_blank" rel="noopener">
     <img
-      src="./images/p6-loki-caseB-proxy1-nohit.png"
+      src="../images/p6-loki-caseB-proxy1-nohit.png"
       alt="Case B Loki（Proxy1でNO HIT）"
       loading="lazy"
       style="
@@ -868,9 +870,9 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- ④CaseA：Loki画面② -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/p6-loki-caseA-proxy2-nohit.png" target="_blank" rel="noopener">
+  <a href="../images/p6-loki-caseA-proxy2-nohit.png" target="_blank" rel="noopener">
     <img
-      src="./images/p6-loki-caseA-proxy2-nohit.png"
+      src="../images/p6-loki-caseA-proxy2-nohit.png"
       alt="Case A Loki（Proxy2でNO HIT）"
       loading="lazy"
       style="
@@ -922,8 +924,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/all_in_one_overview.png" target="_blank" rel="noopener">
-    <img src="./images/all_in_one_overview.png" alt="ALL-IN-ONE（STEP0〜17）概要ログ" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/all_in_one_overview.png" target="_blank" rel="noopener">
+    <img src="../images/all_in_one_overview.png" alt="ALL-IN-ONE（STEP0〜17）概要ログ" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。<strong>環境クリア→起動→初期化→監視/ログ→ヘルス確認</strong>までを一括実行した概要です。
@@ -932,8 +934,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/all_in_one_summary.png" target="_blank" rel="noopener">
-    <img src="./images/all_in_one_summary.png" alt="ALL-IN-ONE 完了サマリ（所要時間）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/all_in_one_summary.png" target="_blank" rel="noopener">
+    <img src="../images/all_in_one_summary.png" alt="ALL-IN-ONE 完了サマリ（所要時間）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。完了サマリ（所要時間）を示し、<strong>再現性（到達できること）</strong>を客観的に示します。
@@ -942,8 +944,8 @@ SSLBump の仕様制約・stunnel の責務分離理由・Kerberos の前提条�
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/healthcheck-output.png" target="_blank" rel="noopener">
-    <img src="./images/healthcheck-output.png" alt="全体ヘルスチェック結果" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/healthcheck-output.png" target="_blank" rel="noopener">
+    <img src="../images/healthcheck-output.png" alt="全体ヘルスチェック結果" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。全体ヘルスチェックにより、<strong>通信検証の前提（依存関係）が整っている</strong>ことを示します。

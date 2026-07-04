@@ -1,6 +1,8 @@
 ---
 title: AWS移行設計案：3段Proxy・認証・ログ基盤
 layout: default
+redirect_from:
+  - /aws-deployment-plan.html
 ---
 
 # AWS移行設計案：3段Proxy・認証・ログ基盤
@@ -28,8 +30,8 @@ Author: gan2
 
 | 項目 | 状況 | 確認できる場所 |
 |---|---|---|
-| OSS / Docker Compose 多段Proxy基盤 | **実装済み** | [Index](./index.html) / [Verification](./verification.html) |
-| 認証・暗号化・経路制御・ログ・監視の責務分離 | **実装済み** | [Index](./index.html) / [Verification](./verification.html) |
+| OSS / Docker Compose 多段Proxy基盤 | **実装済み** | [Index](../index.html) / [Verification](./verification.html) |
+| 認証・暗号化・経路制御・ログ・監視の責務分離 | **実装済み** | [Index](../index.html) / [Verification](./verification.html) |
 | 環境破棄〜約 25 分での再構築 | **実装済み** | [Automation](./automation.html) |
 | AWS 全体アーキテクチャ案（4 図面） | **設計済み** | 本ページ §1 〜 §4 |
 | 構成案 A / B / C 比較・採用判断 | **設計済み** | 本ページ §3 |
@@ -71,7 +73,7 @@ AWS 設計図（本ページ §1 の 4 枚）では、**Internet 側の出口を
 
 ### 1-1. 構成比較図
 
-![AWS構成比較 - 案A 単純移植 / 案B 推奨（バランス型）/ 案C 監査強化](./images/01_architecture_decision_comparison.png)
+![AWS構成比較 - 案A 単純移植 / 案B 推奨（バランス型）/ 案C 監査強化](../images/01_architecture_decision_comparison.png)
 
 - **案A：単純移植（EC2で全再現）** — 低コスト・高運用負荷。シンプル構成だが運用は手動中心
 - **案B：推奨構成（バランス型）** — オンプレ構成を維持しつつ、AWS で可用性・運用性・監視性を最適化
@@ -81,7 +83,7 @@ AWS 設計図（本ページ §1 の 4 枚）では、**Internet 側の出口を
 
 ### 1-2. AWS全体構成図（B案）
 
-![B案 AWS全体構成図 - 中小企業向け 3段Proxy・認証・ログ基盤](./images/02_architecture_overview.png)
+![B案 AWS全体構成図 - 中小企業向け 3段Proxy・認証・ログ基盤](../images/02_architecture_overview.png)
 
 図に存在する構成のみを記述します。
 
@@ -104,7 +106,7 @@ AWS 設計図（本ページ §1 の 4 枚）では、**Internet 側の出口を
 
 ### 1-3. 通信フロー図
 
-![通信フロー図 - B案 3段Proxy + PAC制御](./images/03_network_flow.png)
+![通信フロー図 - B案 3段Proxy + PAC制御](../images/03_network_flow.png)
 
 下から上へ通信が進みます。
 
@@ -128,7 +130,7 @@ AWS 設計図（本ページ §1 の 4 枚）では、**Internet 側の出口を
 
 ### 1-4. レイヤー分解図
 
-![アーキテクチャ - 3段Proxy レイヤー分解図](./images/04_architecture_layers.png)
+![アーキテクチャ - 3段Proxy レイヤー分解図](../images/04_architecture_layers.png)
 
 責務を **7 レイヤ + Logging Layer（横断）** に分離します。
 
@@ -356,7 +358,7 @@ AWS 設計図（本ページ §1 の 4 枚）では、**Internet 側の出口を
 
 **補足図：ログ相関フロー**
 
-![ログ相関図 - Proxy/ICAP/VPN/CWAgent → CloudWatch Logs → OpenSearch / Alarm / S3 → Athena](./images/05_log_correlation_flow.svg)
+![ログ相関図 - Proxy/ICAP/VPN/CWAgent → CloudWatch Logs → OpenSearch / Alarm / S3 → Athena](../images/05_log_correlation_flow.svg)
 
 Proxy / ICAP / VPN / CloudWatch Agent からのログを CloudWatch Logs に集約し、Subscription Filter で OpenSearch Service へ配信、CloudWatch Alarm で異常検知、S3 へ長期保管して Athena で SQL 分析、SSM Session Manager の操作証跡は CloudTrail 経由で S3 に集約する流れです。
 
@@ -421,7 +423,7 @@ Proxy / ICAP / VPN / CloudWatch Agent からのログを CloudWatch Logs に集�
 
 **補足図：IaC 展開フロー**
 
-![IaC展開フロー - 依頼者 → GitHub Actions（terraform plan）→ 人間レビュー → apply (AssumeRole + ExternalID) → SSM Automation 構築後チェック → Markdown レポート](./images/06_iac_deployment_flow.svg)
+![IaC展開フロー - 依頼者 → GitHub Actions（terraform plan）→ 人間レビュー → apply (AssumeRole + ExternalID) → SSM Automation 構築後チェック → Markdown レポート](../images/06_iac_deployment_flow.svg)
 
 依頼者の `workflow_dispatch` 起動 → `terraform plan` → 人間レビューと承認 → AssumeRole + External ID で `terraform apply` → SSM Automation で構築後チェック → Markdown 検証レポート出力までを、すべて CloudTrail で監査記録します。
 
@@ -578,4 +580,4 @@ Proxy / ICAP / VPN / CloudWatch Agent からのログを CloudWatch Logs に集�
 | 3 | [Automation（自動化・再現性）](./automation.html) | 環境破棄〜25 分での再構築 | OSS 実装済み |
 | 4 | **本ページ（AWS 移行設計案）** | OSS の責務分離を AWS でどう設計するか | **設計段階・実機未実施** |
 | 5 | [ポートフォリオ説明用スクリプト](./interview-pitch.html) | 5 / 10 分プレゼン用の話順 | OSS 実装済み + AWS 設計段階 |
-| 参考 | [Index（設計意図・全体構成）](./index.html) | 設計判断の理由・苦労した点 | OSS 実装済み |
+| 参考 | [Index（設計意図・全体構成）](../index.html) | 設計判断の理由・苦労した点 | OSS 実装済み |

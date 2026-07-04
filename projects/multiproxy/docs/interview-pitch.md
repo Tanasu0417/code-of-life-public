@@ -1,6 +1,8 @@
 ---
 title: ポートフォリオ説明用スクリプト
 layout: default
+redirect_from:
+  - /interview-pitch.html
 ---
 
 # ポートフォリオ説明用スクリプト
@@ -198,8 +200,8 @@ AWS 移行設計案そのものを 5 分程度で掘り下げて話す場合の�
 
 ## 関連ドキュメント
 
-- [README](./README.md)
-- [Index（設計意図・全体構成）](./index.html)
+- [README](../README.md)
+- [Index（設計意図・全体構成）](../index.html)
 - [Verification（動作証跡）](./verification.html)
 - [Automation（自動化・再現性）](./automation.html)
 - [AWS 移行設計案](./aws-deployment-plan.html)

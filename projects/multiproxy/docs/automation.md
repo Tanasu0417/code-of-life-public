@@ -1,6 +1,8 @@
 ---
 title: Automation（構築・検証・可視化の自動化）
 layout: default
+redirect_from:
+  - /automation.html
 ---
 
 # Automation（構築・検証・可視化の自動化）
@@ -156,12 +158,12 @@ Automation のゴールは「起動完了」ではありません。
 ### A. ALL-IN-ONE 実行結果（サマリ）
 
 - 目的：STEP0〜17 が完走し、構築〜監視まで到達したことを示す
-- 画像リンク：[`./images/all_in_one_rebuild_and_health.png`](./images/all_in_one_rebuild_and_health.png)
+- 画像リンク：[`../images/all_in_one_rebuild_and_health.png`](../images/all_in_one_rebuild_and_health.png)
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/all_in_one_rebuild_and_health.png" target="_blank" rel="noopener">
-    <img src="./images/all_in_one_rebuild_and_health.png" alt="ALL-IN-ONE rebuild & healthcheck log（STEP完走の証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/all_in_one_rebuild_and_health.png" target="_blank" rel="noopener">
+    <img src="../images/all_in_one_rebuild_and_health.png" alt="ALL-IN-ONE rebuild & healthcheck log（STEP完走の証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -174,12 +176,12 @@ Automation のゴールは「起動完了」ではありません。
 ### B. 正常性確認結果（health / up & health）
 
 - 目的：起動できた「だけ」でなく、ヘルスチェックに合格していることを示す
-- 画像リンク：[`./images/healthcheck-output.png`](./images/healthcheck-output.png)
+- 画像リンク：[`../images/healthcheck-output.png`](../images/healthcheck-output.png)
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/healthcheck-output.png" target="_blank" rel="noopener">
-    <img src="./images/healthcheck-output.png" alt="healthcheck output（コンテナ群が healthy である証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/healthcheck-output.png" target="_blank" rel="noopener">
+    <img src="../images/healthcheck-output.png" alt="healthcheck output（コンテナ群が healthy である証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -193,13 +195,13 @@ Automation のゴールは「起動完了」ではありません。
 
 - 目的：スクリプト実行だけで監視が成立していることを GUI で示す
 - 画像リンク：
-  - [`./images/zabbix-hosts.png`](./images/zabbix-hosts.png)
-  - [`./images/zabbix-proxy1-latest.png`](./images/zabbix-proxy1-latest.png)
+  - [`../images/zabbix-hosts.png`](../images/zabbix-hosts.png)
+  - [`../images/zabbix-proxy1-latest.png`](../images/zabbix-proxy1-latest.png)
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/zabbix-hosts.png" target="_blank" rel="noopener">
-    <img src="./images/zabbix-hosts.png" alt="Zabbix Hosts（自動登録の証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/zabbix-hosts.png" target="_blank" rel="noopener">
+    <img src="../images/zabbix-hosts.png" alt="Zabbix Hosts（自動登録の証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -209,8 +211,8 @@ Automation のゴールは「起動完了」ではありません。
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/zabbix-proxy1-latest.png" target="_blank" rel="noopener">
-    <img src="./images/zabbix-proxy1-latest.png" alt="Zabbix Latest data（監視データが更新されている証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/zabbix-proxy1-latest.png" target="_blank" rel="noopener">
+    <img src="../images/zabbix-proxy1-latest.png" alt="Zabbix Latest data（監視データが更新されている証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -224,12 +226,12 @@ Automation のゴールは「起動完了」ではありません。
 
 - 目的：Proxy1 をどの観測点で監視しているかを示し、
         運用時に“何を見て正常／異常を判断するのか”を具体化する
-- 画像リンク：[`./images/zabbix-proxy1-items.png`](./images/zabbix-proxy1-items.png)
+- 画像リンク：[`../images/zabbix-proxy1-items.png`](../images/zabbix-proxy1-items.png)
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/zabbix-proxy1-items.png" target="_blank" rel="noopener">
-    <img src="./images/zabbix-proxy1-items.png" alt="Zabbix Items（Proxy1の観測点）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/zabbix-proxy1-items.png" target="_blank" rel="noopener">
+    <img src="../images/zabbix-proxy1-items.png" alt="Zabbix Items（Proxy1の観測点）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。
@@ -245,17 +247,17 @@ Automation のゴールは「起動完了」ではありません。
   （※このセクションでは「検索式や解析」までは踏み込まず、**GUI 到達＋ログ閲覧できる**ことだけを証跡化します）
 
 - 証跡
-  - `./images/graylog-gui-access.png`（Graylog のトップ/ダッシュボードが開ける）
-  - `./images/graylog-search-result.png`（Search でログ行が表示されている）
+  - `../images/graylog-gui-access.png`（Graylog のトップ/ダッシュボードが開ける）
+  - `../images/graylog-search-result.png`（Search でログ行が表示されている）
 
 - 画像リンク：
-  - [`./images/graylog-gui-access.png`](./images/graylog-gui-access.png)
-  - [`./images/graylog-search-result.png`](./images/graylog-search-result.png)
+  - [`../images/graylog-gui-access.png`](../images/graylog-gui-access.png)
+  - [`../images/graylog-search-result.png`](../images/graylog-search-result.png)
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/graylog-gui-access.png" target="_blank" rel="noopener">
-    <img src="./images/graylog-gui-access.png" alt="Graylog GUI にアクセスできる（可視化到達点の証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/graylog-gui-access.png" target="_blank" rel="noopener">
+    <img src="../images/graylog-gui-access.png" alt="Graylog GUI にアクセスできる（可視化到達点の証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。Graylog の <strong>Web UI に到達できる</strong>ことを示します（可視化の到達点）。
@@ -264,8 +266,8 @@ Automation のゴールは「起動完了」ではありません。
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/graylog-search-result.png" target="_blank" rel="noopener">
-    <img src="./images/graylog-search-result.png" alt="Graylog でログが閲覧できる（Search結果が表示される）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/graylog-search-result.png" target="_blank" rel="noopener">
+    <img src="../images/graylog-search-result.png" alt="Graylog でログが閲覧できる（Search結果が表示される）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。Graylog 上で <strong>ログ行が表示される</strong>＝ログ閲覧が可能な状態であることを示します。
@@ -281,19 +283,19 @@ Automation のゴールは「起動完了」ではありません。
 （※Case A / Case B の追跡・LogQL の再現は Verification 側に集約する想定）
 
 - 証跡
-  - `./images/grafana-gui-access.png`（Grafana トップが開ける）
-  - `./images/grafana-loki-datasource.png`（Loki datasource が有効/選択できる）
-  - `./images/grafana-loki-explore-result.png`（Explore でログが表示される）
+  - `../images/grafana-gui-access.png`（Grafana トップが開ける）
+  - `../images/grafana-loki-datasource.png`（Loki datasource が有効/選択できる）
+  - `../images/grafana-loki-explore-result.png`（Explore でログが表示される）
 
 - 画像リンク：
-  - [`./images/grafana-gui-access.png`](./images/grafana-gui-access.png)
-  - [`./images/grafana-loki-datasource.png`](./images/grafana-loki-datasource.png)
-  - [`./images/grafana-loki-explore-result.png`](./images/grafana-loki-explore-result.png)
+  - [`../images/grafana-gui-access.png`](../images/grafana-gui-access.png)
+  - [`../images/grafana-loki-datasource.png`](../images/grafana-loki-datasource.png)
+  - [`../images/grafana-loki-explore-result.png`](../images/grafana-loki-explore-result.png)
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/grafana-gui-access.png" target="_blank" rel="noopener">
-    <img src="./images/grafana-gui-access.png" alt="Grafana GUI にアクセスできる（可視化到達点の証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/grafana-gui-access.png" target="_blank" rel="noopener">
+    <img src="../images/grafana-gui-access.png" alt="Grafana GUI にアクセスできる（可視化到達点の証跡）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。Grafana の <strong>Web UI に到達できる</strong>ことを示します（可視化の到達点）。
@@ -302,8 +304,8 @@ Automation のゴールは「起動完了」ではありません。
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/grafana-loki-datasource.png" target="_blank" rel="noopener">
-    <img src="./images/grafana-loki-datasource.png" alt="Grafana で Loki datasource が有効（選択可能）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/grafana-loki-datasource.png" target="_blank" rel="noopener">
+    <img src="../images/grafana-loki-datasource.png" alt="Grafana で Loki datasource が有効（選択可能）" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。Grafana 側で <strong>Loki データソースが利用可能</strong>であることを示します。
@@ -312,8 +314,8 @@ Automation のゴールは「起動完了」ではありません。
 
 <!-- 画像：見やすさ（余白/枠/影）＋タップで原寸（新規タブ） -->
 <figure style="margin: 1.2em auto; text-align:center;">
-  <a href="./images/grafana-loki-explore-result.png" target="_blank" rel="noopener">
-    <img src="./images/grafana-loki-explore-result.png" alt="Grafana Explore（Loki）でログが表示される" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
+  <a href="../images/grafana-loki-explore-result.png" target="_blank" rel="noopener">
+    <img src="../images/grafana-loki-explore-result.png" alt="Grafana Explore（Loki）でログが表示される" loading="lazy" style=" width:100%; max-width:1400px; height:auto; cursor:zoom-in; border:1px solid rgba(0,0,0,.12); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.10); " >
   </a>
   <figcaption style="margin-top:.6em; font-size:.92em; opacity:.85;">
     クリック/タップで原寸表示（別タブ）。Explore で <strong>ログ行が表示される</strong>＝「Loki にログが入っており閲覧できる」状態を示します。
